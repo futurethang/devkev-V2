@@ -1,9 +1,36 @@
 import type { FeedItem, FocusProfile, KeywordConfig } from '../types/feed'
+import type { EnhancedFeedItem } from '../ai/types'
+import { AIProcessor } from '../ai/ai-processor'
 
 /**
  * Content processor for relevance scoring and tag enhancement
  */
 export class ContentProcessor {
+  private aiProcessor?: AIProcessor
+
+  constructor(enableAI: boolean = false) {
+    if (enableAI) {
+      // Initialize AI processor asynchronously
+      this.initializeAI()
+    }
+  }
+
+  private async initializeAI() {
+    try {
+      this.aiProcessor = await AIProcessor.createDefault()
+    } catch (error) {
+      console.warn('Failed to initialize AI processor:', error)
+    }
+  }
+
+  /**
+   * Explicitly initialize AI features and wait for readiness
+   */
+  async initializeAISync(): Promise<void> {
+    if (!this.aiProcessor) {
+      await this.initializeAI()
+    }
+  }
   /**
    * Calculate relevance score for an item based on a focus profile
    */
@@ -292,5 +319,110 @@ export class ContentProcessor {
     
     // Return items that are not marked as duplicates
     return items.filter(item => !duplicateIds.has(item.id))
+  }
+
+  /**
+   * Process items with AI enhancement
+   */
+  async processItemWithAI(item: FeedItem, profile: FocusProfile): Promise<EnhancedFeedItem | null> {
+    // First apply standard processing
+    const processedItem = this.processItem(item, profile)
+    if (!processedItem) {
+      return null
+    }
+
+    // Apply AI enhancement if available
+    if (this.aiProcessor && this.aiProcessor.isReady()) {
+      try {
+        const enhanced = await this.aiProcessor.processItem(processedItem, profile)
+        
+        // Use AI-enhanced relevance score if available
+        if (enhanced.semanticScore !== undefined) {
+          enhanced.relevanceScore = await this.aiProcessor.getEnhancedRelevanceScore(
+            processedItem,
+            processedItem.relevanceScore || 0,
+            profile
+          )
+        }
+        
+        return enhanced
+      } catch (error) {
+        console.warn(`AI processing failed for item ${item.id}:`, error)
+        // Return standard processed item as fallback
+        return processedItem as EnhancedFeedItem
+      }
+    }
+
+    return processedItem as EnhancedFeedItem
+  }
+
+  /**
+   * Process a batch of items with AI enhancement
+   */
+  async processBatchWithAI(items: FeedItem[], profile: FocusProfile): Promise<EnhancedFeedItem[]> {
+    if (!this.aiProcessor || !this.aiProcessor.isReady()) {
+      // Fallback to standard processing
+      return this.processBatch(items, profile).map(item => item as EnhancedFeedItem)
+    }
+
+    const processedItems: EnhancedFeedItem[] = []
+    
+    // First apply standard processing and filtering
+    for (const item of items) {
+      const processed = this.processItem(item, profile)
+      if (processed) {
+        processedItems.push(processed as EnhancedFeedItem)
+      }
+    }
+
+    if (processedItems.length === 0) {
+      return []
+    }
+
+    try {
+      // Apply AI enhancement in batch
+      const batchResult = await this.aiProcessor.processBatch(
+        processedItems.map(item => item as FeedItem),
+        profile
+      )
+
+      // Sort by AI-enhanced relevance scores
+      batchResult.processed.sort((a, b) => {
+        const scoreA = a.semanticScore || a.relevanceScore || 0
+        const scoreB = b.semanticScore || b.relevanceScore || 0
+        return scoreB - scoreA
+      })
+
+      return batchResult.processed
+
+    } catch (error) {
+      console.warn('AI batch processing failed, using standard processing:', error)
+      return processedItems
+    }
+  }
+
+  /**
+   * Check if AI processing is available
+   */
+  isAIEnabled(): boolean {
+    return !!this.aiProcessor?.isReady()
+  }
+
+  /**
+   * Get AI processor statistics
+   */
+  getAIStats() {
+    return this.aiProcessor?.getStats() || null
+  }
+
+  /**
+   * Generate AI summary for a collection of items
+   */
+  async generateCollectionSummary(items: EnhancedFeedItem[], profile: FocusProfile) {
+    if (!this.aiProcessor || !this.aiProcessor.isReady()) {
+      throw new Error('AI processor not available')
+    }
+
+    return this.aiProcessor.generateCollectionSummary(items, profile)
   }
 }

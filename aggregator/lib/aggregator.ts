@@ -1,4 +1,6 @@
 import { RSSParser } from './sources/rss-parser'
+import { GitHubParser } from './sources/github-parser'
+import { HackerNewsParser } from './sources/hn-parser'
 import { ConfigLoader } from './config/config-loader'
 import { ContentProcessor } from './processing/content-processor'
 import type { 
@@ -58,15 +60,19 @@ export interface AggregatorStatus {
  */
 export class Aggregator {
   private rssParser: RSSParser
+  private githubParser: GitHubParser
+  private hnParser: HackerNewsParser
   private configLoader: ConfigLoader
   private contentProcessor: ContentProcessor
   private lastRun?: AggregationResult
   private startTime: Date
 
-  constructor(configDir?: string) {
+  constructor(configDir?: string, enableAI: boolean = false) {
     this.rssParser = new RSSParser()
+    this.githubParser = new GitHubParser()
+    this.hnParser = new HackerNewsParser()
     this.configLoader = new ConfigLoader(configDir)
-    this.contentProcessor = new ContentProcessor()
+    this.contentProcessor = new ContentProcessor(enableAI)
     this.startTime = new Date()
   }
 
@@ -92,10 +98,16 @@ export class Aggregator {
           items = await this.rssParser.fetchAndParse(source.url)
           break
         
-        case 'twitter':
         case 'github':
-        case 'reddit':
+          items = await this.githubParser.fetchFromSource(source)
+          break
+        
         case 'hn':
+          items = await this.hnParser.fetchFromSource(source)
+          break
+        
+        case 'twitter':
+        case 'reddit':
         case 'newsletter':
           // TODO: Implement other source types in Week 2
           throw new Error(`Source type ${source.type} not implemented yet`)
@@ -225,6 +237,115 @@ export class Aggregator {
         avgRelevanceScore: Math.round(avgRelevanceScore * 1000) / 1000,
         duplicatesRemoved,
         errors
+      }
+      
+      if (includeProcessedItems) {
+        result.processedFeedItems = processedItems
+      }
+      
+      return result
+    } catch (error) {
+      return {
+        profileId: profile.id,
+        profileName: profile.name,
+        fetchResults: [],
+        totalItems: 0,
+        processedItems: 0,
+        successfulFetches: 0,
+        avgRelevanceScore: 0,
+        duplicatesRemoved: 0,
+        errors: [error instanceof Error ? error.message : 'Unknown error']
+      }
+    }
+  }
+
+  /**
+   * Fetch content from a profile with AI enhancement
+   */
+  async fetchFromProfileWithAI(profile: FocusProfile, includeProcessedItems: boolean = false): Promise<ProfileFetchResult & { aiStats?: any }> {
+    try {
+      const sources = await this.configLoader.getSourcesForProfile(profile.id)
+      
+      if (sources.length === 0) {
+        return {
+          profileId: profile.id,
+          profileName: profile.name,
+          fetchResults: [],
+          totalItems: 0,
+          processedItems: 0,
+          successfulFetches: 0,
+          avgRelevanceScore: 0,
+          duplicatesRemoved: 0,
+          errors: [`No enabled sources found for profile ${profile.id}`]
+        }
+      }
+
+      // Fetch from all sources in parallel
+      const fetchPromises = sources.map(source => this.fetchFromSource(source))
+      const fetchResults = await Promise.all(fetchPromises)
+      
+      // Collect all feed items
+      const allFeedItems: FeedItem[] = []
+      fetchResults.forEach((result, index) => {
+        if (result.success && result.items) {
+          allFeedItems.push(...result.items)
+        }
+      })
+      
+      // Process content with AI enhancement
+      let processedItems: FeedItem[] = []
+      let duplicatesRemoved = 0
+      let aiStats = null
+      
+      if (allFeedItems.length > 0) {
+        // Remove duplicates first if enabled
+        let itemsToProcess = allFeedItems
+        if (profile.processing.checkDuplicates) {
+          const beforeCount = allFeedItems.length
+          itemsToProcess = this.contentProcessor.deduplicateItems(allFeedItems)
+          duplicatesRemoved = beforeCount - itemsToProcess.length
+        }
+        
+        // Use AI-enhanced processing if available
+        if (this.contentProcessor.isAIEnabled()) {
+          const enhancedItems = await this.contentProcessor.processBatchWithAI(itemsToProcess, profile)
+          processedItems = enhancedItems.map(item => item as FeedItem)
+          aiStats = this.contentProcessor.getAIStats()
+        } else {
+          processedItems = this.contentProcessor.processBatch(itemsToProcess, profile)
+        }
+      }
+      
+      // Calculate metrics
+      const totalItems = allFeedItems.length
+      const successfulFetches = fetchResults.filter(result => result.success).length
+      const avgRelevanceScore = processedItems.length > 0 
+        ? processedItems.reduce((sum, item) => sum + (item.relevanceScore || 0), 0) / processedItems.length
+        : 0
+      
+      const errors = fetchResults
+        .filter(result => !result.success && result.error)
+        .map(result => `${result.sourceId}: ${result.error}`)
+
+      const result: ProfileFetchResult & { aiStats?: any } = {
+        profileId: profile.id,
+        profileName: profile.name,
+        fetchResults: fetchResults.map((result, index) => ({
+          sourceId: sources[index].id,
+          success: result.success,
+          itemCount: result.items?.length || 0,
+          newItemCount: result.items?.length || 0,
+          duration: result.duration,
+          error: result.error,
+          timestamp: result.timestamp
+        })),
+        totalItems,
+        processedItems: processedItems.length,
+        successfulFetches,
+        avgRelevanceScore: Math.round(avgRelevanceScore * 1000) / 1000,
+        duplicatesRemoved,
+        errors,
+        aiStats
       }
       
       if (includeProcessedItems) {

@@ -1,4 +1,5 @@
 import styles from './page.module.css'
+import { AggregatorWidget } from '../_components/AggregatorWidget'
 
 export default function HomePage() {
   return (
@@ -33,6 +34,30 @@ export default function HomePage() {
       <section className={styles.preview} aria-label="Content preview">
         <h2 className={styles.sectionTitle}>Latest Work</h2>
         <p className={styles.comingSoon}>Projects loading soon...</p>
+        
+        <div className={styles.widgetSection}>
+          <h3 className={styles.widgetTitle}>🤖 Live AI Content Aggregator</h3>
+          <p className={styles.widgetDescription}>
+            Real-time demonstration of the AI-powered content aggregation system built during this project.
+          </p>
+          <div className={styles.widgets}>
+            <AggregatorWidget 
+              profileId="ai-product" 
+              autoRefresh={true} 
+              refreshInterval={60000}
+            />
+            <AggregatorWidget 
+              profileId="ml-engineering" 
+              autoRefresh={true} 
+              refreshInterval={60000}
+            />
+            <AggregatorWidget 
+              profileId="design-systems" 
+              autoRefresh={true} 
+              refreshInterval={60000}
+            />
+          </div>
+        </div>
       </section>
     </div>
   )

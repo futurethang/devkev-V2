@@ -1,0 +1,106 @@
+{
+  "id": "ml-engineering", 
+  "name": "ML Engineering",
+  "focus": {
+    "description": "Machine learning engineering, MLOps, model deployment, and data infrastructure for production AI systems",
+    "keywords": {
+      "boost": {
+        "high": [
+          "machine learning",
+          "ml engineering", 
+          "mlops",
+          "model deployment",
+          "data pipeline",
+          "model training",
+          "tensorflow",
+          "pytorch", 
+          "kubernetes",
+          "docker",
+          "model serving",
+          "feature engineering",
+          "data science",
+          "neural networks",
+          "deep learning",
+          "model monitoring"
+        ],
+        "medium": [
+          "python",
+          "jupyter",
+          "pandas",
+          "numpy",
+          "scikit-learn",
+          "model optimization",
+          "gpu computing",
+          "cloud ml",
+          "data engineering",
+          "etl",
+          "data warehouse",
+          "apache spark",
+          "kafka",
+          "airflow",
+          "kubeflow",
+          "mlflow",
+          "wandb",
+          "model registry",
+          "feature store",
+          "data quality"
+        ],
+        "low": [
+          "data analysis",
+          "statistics",
+          "algorithms",
+          "computing",
+          "engineering",
+          "automation",
+          "monitoring",
+          "deployment",
+          "infrastructure",
+          "performance",
+          "scaling",
+          "optimization"
+        ]
+      },
+      "suppress": {
+        "high": [
+          "frontend",
+          "ui design", 
+          "marketing",
+          "sales",
+          "business development",
+          "legal",
+          "finance"
+        ],
+        "medium": [
+          "wordpress",
+          "cms",
+          "e-commerce",
+          "seo",
+          "social media",
+          "content marketing"
+        ],
+        "low": [
+          "gaming",
+          "entertainment",
+          "lifestyle"
+        ]
+      },
+      "require": []
+    }
+  },
+  "sources": [
+    "hn-rss",
+    "toward-data-science", 
+    "ai-news-mit",
+    "github-ai-trending",
+    "hn-ai-search"
+  ],
+  "processing": {
+    "generateSummary": true,
+    "enhanceTags": true,
+    "scoreRelevance": true,
+    "checkDuplicates": true,
+    "minRelevanceScore": 0.2,
+    "maxAgeDays": 7
+  },
+  "enabled": true
+}

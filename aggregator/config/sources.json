@@ -59,6 +59,45 @@
       "config": {
         "timeout": 10000
       }
+    },
+    {
+      "id": "github-ai-trending",
+      "name": "GitHub AI Trending",
+      "type": "github",
+      "url": "https://api.github.com/search/repositories",
+      "fetchInterval": 240,
+      "weight": 0.9,
+      "enabled": true,
+      "config": {
+        "language": "typescript",
+        "since": "weekly",
+        "query": "ai machine learning"
+      }
+    },
+    {
+      "id": "hn-ai-search",
+      "name": "HackerNews AI Stories",
+      "type": "hn",
+      "url": "https://hacker-news.firebaseio.com/v0/topstories.json",
+      "fetchInterval": 60,
+      "weight": 0.8,
+      "enabled": true,
+      "config": {
+        "query": "artificial intelligence machine learning",
+        "count": 5
+      }
+    },
+    {
+      "id": "hn-top-stories",
+      "name": "HackerNews Top Stories",
+      "type": "hn",
+      "url": "https://hacker-news.firebaseio.com/v0/topstories.json",
+      "fetchInterval": 30,
+      "weight": 0.7,
+      "enabled": false,
+      "config": {
+        "count": 10
+      }
     }
   ]
 }

@@ -1,0 +1,72 @@
+{
+  "profiles": [
+    {
+      "profileId": "ai-product",
+      "profileName": "AI Product Builder",
+      "fetchResults": [
+        {
+          "sourceId": "hn-rss",
+          "success": true,
+          "itemCount": 20,
+          "newItemCount": 20,
+          "duration": 544,
+          "timestamp": "2025-06-14T03:46:32.088Z"
+        },
+        {
+          "sourceId": "dev-to-ai",
+          "success": true,
+          "itemCount": 12,
+          "newItemCount": 12,
+          "duration": 668,
+          "timestamp": "2025-06-14T03:46:32.235Z"
+        },
+        {
+          "sourceId": "toward-data-science",
+          "success": true,
+          "itemCount": 20,
+          "newItemCount": 20,
+          "duration": 512,
+          "timestamp": "2025-06-14T03:46:32.080Z"
+        },
+        {
+          "sourceId": "ai-news-mit",
+          "success": false,
+          "itemCount": 0,
+          "newItemCount": 0,
+          "duration": 252,
+          "error": "Failed to parse RSS feed: cat.toLowerCase is not a function",
+          "timestamp": "2025-06-14T03:46:31.820Z"
+        },
+        {
+          "sourceId": "github-ai-trending",
+          "success": true,
+          "itemCount": 30,
+          "newItemCount": 30,
+          "duration": 1167,
+          "timestamp": "2025-06-14T03:46:32.736Z"
+        },
+        {
+          "sourceId": "hn-ai-search",
+          "success": true,
+          "itemCount": 10,
+          "newItemCount": 10,
+          "duration": 512,
+          "timestamp": "2025-06-14T03:46:32.082Z"
+        }
+      ],
+      "totalItems": 92,
+      "processedItems": 4,
+      "successfulFetches": 5,
+      "avgRelevanceScore": 0.4,
+      "duplicatesRemoved": 1,
+      "errors": [
+        "ai-news-mit: Failed to parse RSS feed: cat.toLowerCase is not a function"
+      ]
+    }
+  ],
+  "totalFetches": 6,
+  "totalItems": 92,
+  "totalErrors": 1,
+  "duration": 1339,
+  "timestamp": "2025-06-14T03:46:32.882Z"
+}

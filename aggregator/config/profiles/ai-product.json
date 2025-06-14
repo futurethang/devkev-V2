@@ -41,26 +41,23 @@
         "theoretical",
         "mathematical proof"
       ],
-      "require": [
-        "ai",
-        "product",
-        "user",
-        "app"
-      ]
+      "require": []
     }
   },
   "sources": [
     "hn-rss",
-    "dev-to-ai",
+    "hn-ai-search",
+    "dev-to-ai", 
     "toward-data-science",
-    "ai-news-mit"
+    "ai-news-mit",
+    "github-ai-trending"
   ],
   "processing": {
     "generateSummary": true,
     "enhanceTags": true,
     "scoreRelevance": true,
     "checkDuplicates": true,
-    "minRelevanceScore": 0.3,
+    "minRelevanceScore": 0.1,
     "maxAgeDays": 7
   },
   "enabled": true

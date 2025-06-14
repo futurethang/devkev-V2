@@ -1,0 +1,108 @@
+{
+  "id": "design-systems",
+  "name": "Design Systems & Frontend",
+  "focus": {
+    "description": "Design systems, frontend architecture, component libraries, and modern web development practices",
+    "keywords": {
+      "boost": {
+        "high": [
+          "design systems",
+          "component library",
+          "design tokens",
+          "figma",
+          "storybook", 
+          "frontend architecture",
+          "react",
+          "vue",
+          "svelte",
+          "typescript",
+          "css",
+          "scss",
+          "tailwind",
+          "styled-components",
+          "web components",
+          "accessibility",
+          "a11y",
+          "user experience",
+          "ui design",
+          "interaction design"
+        ],
+        "medium": [
+          "javascript",
+          "html",
+          "responsive design",
+          "mobile-first",
+          "progressive web app",
+          "pwa",
+          "webpack",
+          "vite",
+          "nextjs",
+          "nuxt",
+          "sveltekit",
+          "performance",
+          "optimization",
+          "web vitals",
+          "design patterns",
+          "atomic design",
+          "css-in-js",
+          "css modules",
+          "design tools",
+          "prototyping"
+        ],
+        "low": [
+          "frontend",
+          "web development",
+          "ui",
+          "ux",
+          "design",
+          "interface",
+          "user interface",
+          "visual design",
+          "branding",
+          "color theory",
+          "typography",
+          "layout",
+          "grid",
+          "flexbox"
+        ]
+      },
+      "suppress": {
+        "high": [
+          "backend",
+          "database",
+          "server",
+          "devops",
+          "infrastructure",
+          "blockchain",
+          "cryptocurrency"
+        ],
+        "medium": [
+          "machine learning",
+          "data science",
+          "analytics",
+          "business intelligence"
+        ],
+        "low": [
+          "marketing",
+          "sales",
+          "finance"
+        ]
+      },
+      "require": []
+    }
+  },
+  "sources": [
+    "hn-rss",
+    "dev-to-ai",
+    "github-ai-trending"
+  ],
+  "processing": {
+    "generateSummary": true,
+    "enhanceTags": true,
+    "scoreRelevance": true,
+    "checkDuplicates": true,
+    "minRelevanceScore": 0.25,
+    "maxAgeDays": 10
+  },
+  "enabled": true
+}
