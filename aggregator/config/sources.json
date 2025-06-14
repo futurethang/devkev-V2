@@ -1,0 +1,64 @@
+{
+  "sources": [
+    {
+      "id": "indie-hackers-rss",
+      "name": "Indie Hackers",
+      "type": "rss",
+      "url": "https://www.indiehackers.com/posts/newest.rss",
+      "fetchInterval": 60,
+      "weight": 0.8,
+      "enabled": true,
+      "config": {
+        "timeout": 10000
+      }
+    },
+    {
+      "id": "hn-rss",
+      "name": "Hacker News",
+      "type": "rss", 
+      "url": "https://hnrss.org/frontpage",
+      "fetchInterval": 30,
+      "weight": 0.7,
+      "enabled": true,
+      "config": {
+        "timeout": 10000
+      }
+    },
+    {
+      "id": "dev-to-ai",
+      "name": "Dev.to AI Posts",
+      "type": "rss",
+      "url": "https://dev.to/feed/tag/ai",
+      "fetchInterval": 120,
+      "weight": 0.6,
+      "enabled": true,
+      "config": {
+        "timeout": 10000
+      }
+    },
+    {
+      "id": "toward-data-science",
+      "name": "Towards Data Science",
+      "type": "rss",
+      "url": "https://towardsdatascience.com/feed",
+      "fetchInterval": 180,
+      "weight": 0.5,
+      "enabled": true,
+      "config": {
+        "timeout": 10000
+      }
+    },
+    {
+      "id": "ai-news-mit",
+      "name": "MIT AI News",
+      "type": "rss",
+      "url": "https://news.mit.edu/rss/topic/artificial-intelligence2",
+      "fetchInterval": 360,
+      "weight": 0.4,
+      "enabled": true,
+      "config": {
+        "timeout": 10000
+      }
+    }
+  ]
+}

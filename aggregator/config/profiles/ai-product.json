@@ -1,0 +1,67 @@
+{
+  "id": "ai-product",
+  "name": "AI Product Builder",
+  "description": "Focus on AI product development, user experience, and practical applications",
+  "weight": 1.0,
+  "keywords": {
+    "boost": {
+      "high": [
+        "user experience",
+        "product launch", 
+        "ai ux",
+        "chatgpt wrapper",
+        "ai saas",
+        "ai product",
+        "product-market fit",
+        "ai startup"
+      ],
+      "medium": [
+        "prototype",
+        "mvp",
+        "user feedback",
+        "indie hacker",
+        "side project",
+        "ai tool",
+        "automation"
+      ],
+      "low": [
+        "startup",
+        "revenue",
+        "business model",
+        "marketing",
+        "growth"
+      ]
+    },
+    "filter": {
+      "exclude": [
+        "research paper",
+        "academic",
+        "phd",
+        "arxiv",
+        "theoretical",
+        "mathematical proof"
+      ],
+      "require": [
+        "ai",
+        "product",
+        "user",
+        "app"
+      ]
+    }
+  },
+  "sources": [
+    "indie-hackers-rss",
+    "product-hunt-rss", 
+    "twitter-ai-builders",
+    "hn-show"
+  ],
+  "processing": {
+    "generateSummary": true,
+    "enhanceTags": true,
+    "scoreRelevance": true,
+    "checkDuplicates": true,
+    "minRelevanceScore": 0.3,
+    "maxAgeDays": 7
+  },
+  "enabled": true
+}
