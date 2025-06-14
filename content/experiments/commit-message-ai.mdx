@@ -1,0 +1,134 @@
+---
+title: "Commit Message AI"
+description: "AI-generated git commit messages that follow conventional commit standards and accurately describe code changes"
+date: "2024-03-20"
+tags: ["git", "commits", "ai", "development", "automation"]
+demoUrl: "https://commit-ai.dev"
+sourceUrl: "https://github.com/experiments/commit-message-ai"
+buildPrompt: "Build a tool that analyzes git diffs and generates meaningful commit messages following conventional commit format with proper scope and description"
+---
+
+# Commit Message AI
+
+Generate meaningful, standardized git commit messages by analyzing your code changes with AI.
+
+## Features
+
+- **Diff Analysis**: Examines actual code changes to understand intent
+- **Conventional Commits**: Follows conventional commit specification
+- **Scope Detection**: Automatically identifies affected modules/components
+- **Breaking Changes**: Detects and flags breaking changes
+- **Multiple Options**: Generates several commit message variations
+
+## Conventional Commit Format
+
+Generated messages follow the standard:
+```
+<type>(<scope>): <description>
+
+[optional body]
+
+[optional footer(s)]
+```
+
+## Supported Types
+
+- **feat**: New features
+- **fix**: Bug fixes
+- **docs**: Documentation changes
+- **style**: Code style changes
+- **refactor**: Code refactoring
+- **test**: Test additions/modifications
+- **chore**: Build process or auxiliary tool changes
+
+## Example Analysis
+
+**Git Diff**:
+```diff
+diff --git a/src/components/Button.tsx b/src/components/Button.tsx
+index 1234567..abcdefg 100644
+--- a/src/components/Button.tsx
++++ b/src/components/Button.tsx
+@@ -1,8 +1,12 @@
+ export interface ButtonProps {
+   children: React.ReactNode;
++  variant?: 'primary' | 'secondary';
++  size?: 'sm' | 'md' | 'lg';
+ }
+
+-export function Button({ children }: ButtonProps) {
+-  return <button className="btn">{children}</button>
++export function Button({ children, variant = 'primary', size = 'md' }: ButtonProps) {
++  const classes = `btn btn-${variant} btn-${size}`;
++  return <button className={classes}>{children}</button>
+ }
+```
+
+**Generated Messages**:
+1. `feat(components): add variant and size props to Button component`
+2. `feat(ui): enhance Button with variant and size styling options`
+3. `feat(button): add customizable variant and size properties`
+
+## Advanced Features
+
+**Breaking Change Detection**:
+```
+feat(api)!: change user authentication endpoint structure
+
+BREAKING CHANGE: The /auth endpoint now requires email instead of username
+```
+
+**Multi-scope Changes**:
+```
+feat(auth,ui): implement OAuth login with new button styles
+```
+
+**Issue Linking**:
+```
+fix(validation): resolve email regex pattern bug
+
+Fixes #123
+```
+
+## Integration Options
+
+- **CLI Tool**: `npx commit-ai` in any git repository
+- **Git Hook**: Automatic message generation on commit
+- **VS Code Extension**: Generate messages from diff view
+- **GitHub Action**: PR title and description generation
+
+## Tech Stack
+
+- Node.js CLI with git integration
+- OpenAI API for change analysis
+- Simple-git for repository operations
+- Conventional commits parser
+
+## Configuration
+
+Customize generation with `.commitai.json`:
+```json
+{
+  "maxLength": 72,
+  "types": ["feat", "fix", "docs"],
+  "scopes": ["auth", "ui", "api"],
+  "includeBody": true,
+  "linkIssues": true
+}
+```
+
+## Use Cases
+
+- Maintaining consistent commit history
+- Automating commit message writing
+- Learning conventional commit standards
+- Code review and change tracking
+
+## Benefits
+
+- **Consistency**: Standardized message format across team
+- **Accuracy**: Messages reflect actual code changes
+- **Speed**: Faster commit workflow
+- **Quality**: Better commit history for project maintenance
+
+Perfect for developers and teams who want professional commit messages without the manual effort of writing them.

@@ -1,0 +1,65 @@
+---
+title: "Regex Explainer"
+description: "Natural language regex explanation tool that breaks down complex regular expressions into human-readable descriptions"
+date: "2024-03-12"
+tags: ["regex", "explanation", "learning", "development", "ai"]
+demoUrl: "https://regex-explainer.dev"
+sourceUrl: "https://github.com/experiments/regex-explainer"
+buildPrompt: "Build a tool that takes complex regular expressions and explains them in plain English, with visual breakdown and test examples"
+---
+
+# Regex Explainer
+
+Transform cryptic regular expressions into clear, human-readable explanations with visual breakdown and examples.
+
+## Features
+
+- **Plain English Explanations**: Convert regex patterns to natural language
+- **Visual Breakdown**: Highlight and explain each part of the pattern
+- **Live Testing**: Test regex against sample inputs in real-time
+- **Example Generation**: AI creates relevant test cases
+- **Pattern Variations**: Suggest alternative regex approaches
+
+## How It Works
+
+Paste any regular expression and get:
+1. **Overall Purpose**: What the regex is trying to match
+2. **Part-by-Part Breakdown**: Each component explained
+3. **Visual Highlighting**: Color-coded pattern segments
+4. **Test Cases**: Examples of matching and non-matching strings
+5. **Common Pitfalls**: Potential issues and edge cases
+
+## Example Explanation
+
+**Input regex:**
+```
+^(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])$
+```
+
+**Output:**
+
+**Purpose**: Validates email addresses according to RFC 5322 specification
+
+**Breakdown**:
+- `^` - Start of string
+- `(?:...)` - Non-capturing group for email username  
+- Valid username characters with special symbols allowed
+- `@` - Required @ symbol  
+- Domain validation with support for both domain names and IP addresses
+- `$` - End of string
+
+## Tech Stack
+
+- React with syntax highlighting
+- OpenAI API for explanations
+- RegExp parser for pattern analysis
+- Monaco Editor for regex input
+
+## Use Cases
+
+- Learning regular expressions
+- Debugging complex patterns
+- Code review and documentation
+- Teaching regex concepts
+
+Makes regex accessible to developers of all skill levels.

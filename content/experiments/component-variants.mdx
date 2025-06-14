@@ -1,0 +1,58 @@
+---
+title: "Component Variants"
+description: "Dynamic component variant generator that creates multiple design variations of React components using AI"
+date: "2024-03-10"
+tags: ["react", "components", "variants", "design-system", "ai"]
+demoUrl: "https://component-variants.dev"
+sourceUrl: "https://github.com/experiments/component-variants"
+buildPrompt: "Build a tool that takes a base React component and generates multiple design variants (different colors, sizes, styles) with live preview and code export"
+---
+
+# Component Variants
+
+Automatically generate multiple design variations of your React components with AI-powered styling suggestions.
+
+## Features
+
+- **Base Component Import**: Upload or paste your existing component code
+- **Variant Generation**: AI creates multiple design variations automatically
+- **Live Preview**: See all variants rendered side-by-side
+- **Export Options**: Download individual variants or complete design system
+- **Prop Mapping**: Automatically generates prop interfaces for variants
+
+## Supported Variations
+
+- **Color Schemes**: Primary, secondary, success, warning, danger themes
+- **Sizes**: XS through 3XL with proper scaling
+- **Styles**: Filled, outlined, ghost, gradient variations
+- **States**: Hover, focus, active, disabled states
+
+## Example Input/Output
+
+Input a basic button component:
+```jsx
+function Button({ children }) {
+  return <button>{children}</button>
+}
+```
+
+Output includes variants like:
+- `ButtonPrimary`, `ButtonSecondary`, `ButtonDanger`
+- `ButtonSmall`, `ButtonLarge`
+- `ButtonOutlined`, `ButtonGhost`
+
+## Tech Stack
+
+- React 18 with TypeScript
+- Styled Components for dynamic styling
+- OpenAI API for variant generation
+- Storybook integration for documentation
+
+## Use Cases
+
+- Rapid prototyping of design systems
+- Creating consistent component libraries
+- Exploring design possibilities
+- Generating component documentation
+
+Saves hours of manual variant creation while maintaining design consistency.

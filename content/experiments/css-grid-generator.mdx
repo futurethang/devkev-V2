@@ -1,0 +1,52 @@
+---
+title: "CSS Grid Generator"
+description: "AI-powered tool that generates CSS Grid layouts based on natural language descriptions and visual mockups"
+date: "2024-03-15"
+tags: ["css", "grid", "ai", "layout", "generator"]
+demoUrl: "https://css-grid-ai.dev"
+sourceUrl: "https://github.com/experiments/css-grid-generator"
+buildPrompt: "Create a CSS Grid layout generator that takes natural language input like 'create a 3-column layout with sidebar and main content' and outputs clean CSS Grid code with visual preview"
+---
+
+# CSS Grid Generator
+
+An intelligent CSS Grid layout generator that transforms natural language descriptions into production-ready CSS Grid code.
+
+## Features
+
+- **Natural Language Input**: Describe your layout in plain English
+- **Visual Preview**: See your grid layout rendered in real-time
+- **Responsive Variants**: Automatically generate mobile-friendly versions
+- **Clean Code Output**: Export optimized CSS with proper naming conventions
+
+## How It Works
+
+The tool uses AI to parse layout descriptions and translate them into semantic CSS Grid properties. Simply describe what you want:
+
+- "Three equal columns with gaps"
+- "Header, main content, sidebar, footer layout"
+- "Masonry-style grid for image gallery"
+
+## Tech Stack
+
+- Next.js for the interface
+- OpenAI API for natural language processing
+- CSS Grid for layout generation
+- Tailwind CSS for styling
+
+## Example Output
+
+```css
+.grid-container {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  grid-template-rows: auto 1fr auto;
+  grid-template-areas: 
+    "header header"
+    "main sidebar"
+    "footer footer";
+  gap: 1rem;
+}
+```
+
+Perfect for developers who want to quickly prototype layouts without memorizing complex Grid syntax.

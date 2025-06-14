@@ -1,0 +1,74 @@
+---
+title: "Color Palette AI"
+description: "AI-powered color palette generator that creates brand-appropriate color schemes based on industry, mood, and style preferences"
+date: "2024-03-18"
+tags: ["design", "colors", "branding", "ai", "palette"]
+demoUrl: "https://color-palette-ai.dev"
+sourceUrl: "https://github.com/experiments/color-palette-ai"
+buildPrompt: "Create an AI color palette generator that understands brand context, industry standards, and psychological color theory to generate appropriate color schemes"
+---
+
+# Color Palette AI
+
+Generate intelligent color palettes tailored to your brand, industry, and design goals using AI-powered color theory.
+
+## Features
+
+- **Context-Aware Generation**: Understands industry standards and brand personality
+- **Psychological Insights**: Explains color psychology behind each palette
+- **Multiple Formats**: HEX, RGB, HSL, and CSS custom properties
+- **Accessibility Checking**: Ensures WCAG contrast compliance
+- **Export Options**: Sketch, Figma, Adobe, and CSS formats
+
+## Input Options
+
+**Brand Description**: 
+- "Sustainable tech startup focused on renewable energy"
+- "Luxury fashion brand targeting millennials"
+- "Playful children's education app"
+
+**Industry Selection**:
+- Technology, Healthcare, Finance, Education, Entertainment
+- Retail, Food & Beverage, Non-profit, Creative
+
+**Mood & Style**:
+- Professional, Playful, Elegant, Bold, Minimalist
+- Warm, Cool, Vibrant, Muted, High-contrast
+
+## AI-Generated Insights
+
+Each palette includes:
+- **Primary Colors**: Main brand colors with usage guidelines
+- **Secondary Colors**: Supporting colors for variety
+- **Neutral Colors**: Grays and background colors
+- **Accent Colors**: Highlight and call-to-action colors
+- **Psychology Explanation**: Why these colors work for your brand
+
+## Example Output
+
+**Sustainable Tech Startup**:
+```css
+:root {
+  --primary-green: #2D7D32;      /* Trust, growth, sustainability */
+  --secondary-blue: #1976D2;     /* Innovation, reliability */
+  --accent-orange: #FF6F00;      /* Energy, optimism */
+  --neutral-gray: #546E7A;       /* Balance, professionalism */
+  --background: #FAFAFA;         /* Clean, modern */
+}
+```
+
+## Tech Stack
+
+- React with color picker components
+- OpenAI API for context understanding
+- Chroma.js for color manipulation
+- Color accessibility APIs
+
+## Use Cases
+
+- Brand identity development
+- Website and app design
+- Marketing material creation
+- Design system establishment
+
+Perfect for designers and developers who want data-driven color decisions backed by psychology and industry best practices.

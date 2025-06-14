@@ -1,0 +1,79 @@
+---
+title: "API Mocker"
+description: "AI-powered mock API generator that creates realistic endpoints with smart data generation based on schema descriptions"
+date: "2024-03-08"
+tags: ["api", "mocking", "testing", "development", "ai"]
+demoUrl: "https://api-mocker-ai.dev"
+sourceUrl: "https://github.com/experiments/api-mocker"
+buildPrompt: "Create a mock API generator that uses AI to understand endpoint descriptions and generate realistic JSON responses with proper relationships and data types"
+---
+
+# API Mocker
+
+Generate realistic mock APIs with intelligent data relationships using natural language descriptions.
+
+## Features
+
+- **Schema-Free Setup**: Describe endpoints in plain English
+- **Intelligent Data Generation**: AI creates realistic, related data
+- **Relationship Mapping**: Automatically handles foreign keys and references
+- **Multiple Formats**: JSON, GraphQL, REST endpoints
+- **Real-time Updates**: Live API available instantly
+
+## How It Works
+
+Simply describe your API needs:
+- "User management system with profiles and posts"
+- "E-commerce API with products, orders, and inventory"
+- "Social media API with users, posts, comments, and likes"
+
+The AI generates:
+- Realistic field names and data types
+- Proper relationships between entities
+- Consistent data patterns
+- Appropriate HTTP methods and status codes
+
+## Example Generation
+
+Input: "Blog API with authors and posts"
+
+Generated endpoints:
+```
+GET /api/authors
+GET /api/authors/:id
+GET /api/posts
+GET /api/posts/:id
+GET /api/authors/:id/posts
+POST /api/posts
+PUT /api/posts/:id
+DELETE /api/posts/:id
+```
+
+With realistic data:
+```json
+{
+  "author": {
+    "id": 1,
+    "name": "Sarah Chen",
+    "email": "sarah.chen@example.com",
+    "bio": "Tech writer and developer",
+    "joined": "2023-01-15T10:30:00Z"
+  }
+}
+```
+
+## Tech Stack
+
+- Express.js for API hosting
+- OpenAI API for data generation
+- Faker.js for realistic data
+- JSON Server for quick deployment
+
+## Use Cases
+
+- Frontend development without backend
+- API design prototyping
+- Integration testing
+- Demo applications
+
+Perfect for developers who need realistic mock data without manual JSON creation.

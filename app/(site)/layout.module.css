@@ -1,0 +1,5 @@
+.main {
+  min-height: calc(100vh - var(--space-32));
+  padding-top: var(--space-20);
+  padding-bottom: var(--space-20);
+}
