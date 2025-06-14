@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { ThemeToggle } from './ThemeToggle'
 import styles from './Header.module.css'
 
 export function Header() {
@@ -11,12 +12,15 @@ export function Header() {
             <span className={styles.title}>AI-Augmented Product Engineer</span>
           </Link>
           
-          <ul className={styles.navList}>
-            <li><Link href="/projects" className={styles.navLink}>Projects</Link></li>
-            <li><Link href="/lab" className={styles.navLink}>Lab</Link></li>
-            <li><Link href="/blog" className={styles.navLink}>Blog</Link></li>
-            <li><Link href="/about" className={styles.navLink}>About</Link></li>
-          </ul>
+          <div className={styles.rightSection}>
+            <ul className={styles.navList}>
+              <li><Link href="/projects" className={styles.navLink}>Projects</Link></li>
+              <li><Link href="/lab" className={styles.navLink}>Lab</Link></li>
+              <li><Link href="/blog" className={styles.navLink}>Blog</Link></li>
+              <li><Link href="/about" className={styles.navLink}>About</Link></li>
+            </ul>
+            <ThemeToggle />
+          </div>
         </div>
       </nav>
     </header>

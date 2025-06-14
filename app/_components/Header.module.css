@@ -47,6 +47,12 @@
   line-height: var(--leading-tight);
 }
 
+.rightSection {
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+}
+
 .navList {
   display: flex;
   gap: var(--space-8);
@@ -87,6 +93,10 @@
 @media (max-width: 768px) {
   .title {
     display: none;
+  }
+  
+  .rightSection {
+    gap: var(--space-4);
   }
   
   .navList {
