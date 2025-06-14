@@ -1,5 +1,6 @@
 import { RSSParser } from './sources/rss-parser'
 import { ConfigLoader } from './config/config-loader'
+import { ContentProcessor } from './processing/content-processor'
 import type { 
   FeedItem, 
   SourceConfig, 
@@ -16,8 +17,12 @@ export interface ProfileFetchResult {
   profileName: string
   fetchResults: FetchResult[]
   totalItems: number
+  processedItems: number
   successfulFetches: number
+  avgRelevanceScore: number
+  duplicatesRemoved: number
   errors: string[]
+  processedFeedItems?: FeedItem[] // Optional: the actual processed items
 }
 
 /**
@@ -54,19 +59,28 @@ export interface AggregatorStatus {
 export class Aggregator {
   private rssParser: RSSParser
   private configLoader: ConfigLoader
+  private contentProcessor: ContentProcessor
   private lastRun?: AggregationResult
   private startTime: Date
 
   constructor(configDir?: string) {
     this.rssParser = new RSSParser()
     this.configLoader = new ConfigLoader(configDir)
+    this.contentProcessor = new ContentProcessor()
     this.startTime = new Date()
   }
 
   /**
-   * Fetch content from a single source
+   * Fetch and parse content from a single source, returning both result and items
    */
-  async fetchFromSource(source: SourceConfig): Promise<FetchResult> {
+  private async fetchAndParseSource(source: SourceConfig): Promise<{
+    sourceId: string
+    success: boolean
+    items?: FeedItem[]
+    duration: number
+    error?: string
+    timestamp: Date
+  }> {
     const startTime = Date.now()
     
     try {
@@ -95,8 +109,7 @@ export class Aggregator {
       return {
         sourceId: source.id,
         success: true,
-        itemCount: items.length,
-        newItemCount: items.length, // TODO: Implement duplicate detection
+        items,
         duration,
         timestamp: new Date()
       }
@@ -106,8 +119,6 @@ export class Aggregator {
       return {
         sourceId: source.id,
         success: false,
-        itemCount: 0,
-        newItemCount: 0,
         duration,
         error: error instanceof Error ? error.message : 'Unknown error',
         timestamp: new Date()
@@ -116,9 +127,26 @@ export class Aggregator {
   }
 
   /**
+   * Fetch content from a single source (public interface)
+   */
+  async fetchFromSource(source: SourceConfig): Promise<FetchResult> {
+    const result = await this.fetchAndParseSource(source)
+    
+    return {
+      sourceId: result.sourceId,
+      success: result.success,
+      itemCount: result.items?.length || 0,
+      newItemCount: result.items?.length || 0, // TODO: Implement proper new item detection
+      duration: result.duration,
+      error: result.error,
+      timestamp: result.timestamp
+    }
+  }
+
+  /**
    * Fetch content from all sources in a focus profile
    */
-  async fetchFromProfile(profile: FocusProfile): Promise<ProfileFetchResult> {
+  async fetchFromProfile(profile: FocusProfile, includeProcessedItems: boolean = false): Promise<ProfileFetchResult> {
     try {
       const sources = await this.configLoader.getSourcesForProfile(profile.id)
       
@@ -128,36 +156,92 @@ export class Aggregator {
           profileName: profile.name,
           fetchResults: [],
           totalItems: 0,
+          processedItems: 0,
           successfulFetches: 0,
+          avgRelevanceScore: 0,
+          duplicatesRemoved: 0,
           errors: [`No enabled sources found for profile ${profile.id}`]
         }
       }
 
       // Fetch from all sources in parallel
-      const fetchPromises = sources.map(source => this.fetchFromSource(source))
-      const fetchResults = await Promise.all(fetchPromises)
+      const fetchPromises = sources.map(source => this.fetchAndParseSource(source))
+      const sourceResults = await Promise.all(fetchPromises)
       
-      const totalItems = fetchResults.reduce((sum, result) => sum + result.itemCount, 0)
+      // Collect all feed items from successful fetches
+      const allFeedItems: FeedItem[] = []
+      const fetchResults: FetchResult[] = []
+      
+      sourceResults.forEach(result => {
+        fetchResults.push({
+          sourceId: result.sourceId,
+          success: result.success,
+          itemCount: result.items?.length || 0,
+          newItemCount: result.items?.length || 0,
+          duration: result.duration,
+          error: result.error,
+          timestamp: result.timestamp
+        })
+        
+        if (result.success && result.items) {
+          allFeedItems.push(...result.items)
+        }
+      })
+      
+      // Process content with the profile's configuration
+      let processedItems: FeedItem[] = []
+      let duplicatesRemoved = 0
+      
+      if (allFeedItems.length > 0) {
+        // Remove duplicates first if enabled
+        if (profile.processing.checkDuplicates) {
+          const beforeCount = allFeedItems.length
+          const deduplicatedItems = this.contentProcessor.deduplicateItems(allFeedItems)
+          duplicatesRemoved = beforeCount - deduplicatedItems.length
+          processedItems = this.contentProcessor.processBatch(deduplicatedItems, profile)
+        } else {
+          processedItems = this.contentProcessor.processBatch(allFeedItems, profile)
+        }
+      }
+      
+      // Calculate metrics
+      const totalItems = allFeedItems.length
       const successfulFetches = fetchResults.filter(result => result.success).length
+      const avgRelevanceScore = processedItems.length > 0 
+        ? processedItems.reduce((sum, item) => sum + (item.relevanceScore || 0), 0) / processedItems.length
+        : 0
+      
       const errors = fetchResults
         .filter(result => !result.success && result.error)
         .map(result => `${result.sourceId}: ${result.error}`)
 
-      return {
+      const result: ProfileFetchResult = {
         profileId: profile.id,
         profileName: profile.name,
         fetchResults,
         totalItems,
+        processedItems: processedItems.length,
         successfulFetches,
+        avgRelevanceScore: Math.round(avgRelevanceScore * 1000) / 1000,
+        duplicatesRemoved,
         errors
       }
+      
+      if (includeProcessedItems) {
+        result.processedFeedItems = processedItems
+      }
+      
+      return result
     } catch (error) {
       return {
         profileId: profile.id,
         profileName: profile.name,
         fetchResults: [],
         totalItems: 0,
+        processedItems: 0,
         successfulFetches: 0,
+        avgRelevanceScore: 0,
+        duplicatesRemoved: 0,
         errors: [error instanceof Error ? error.message : 'Unknown error']
       }
     }

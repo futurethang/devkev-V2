@@ -50,10 +50,10 @@
     }
   },
   "sources": [
-    "indie-hackers-rss",
-    "product-hunt-rss", 
-    "twitter-ai-builders",
-    "hn-show"
+    "hn-rss",
+    "dev-to-ai",
+    "toward-data-science",
+    "ai-news-mit"
   ],
   "processing": {
     "generateSummary": true,

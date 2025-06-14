@@ -60,6 +60,37 @@ async function main() {
       console.log('  No enabled RSS sources found')
     }
     
+    // Test profile-based aggregation with content processing
+    console.log('\n🧠 Testing AI-powered content processing:')
+    if (profiles.length > 0) {
+      const testProfile = profiles[0]
+      console.log(`  Processing with profile: ${testProfile.name}`)
+      
+      const profileResult = await aggregator.fetchFromProfile(testProfile, true)
+      console.log(`  📊 Results:`)
+      console.log(`    - Raw items: ${profileResult.totalItems}`)
+      console.log(`    - Processed items: ${profileResult.processedItems}`)
+      console.log(`    - Duplicates removed: ${profileResult.duplicatesRemoved}`)
+      console.log(`    - Average relevance: ${profileResult.avgRelevanceScore.toFixed(3)}`)
+      console.log(`    - Successful sources: ${profileResult.successfulFetches}/${profileResult.fetchResults.length}`)
+      
+      if (profileResult.errors.length > 0) {
+        console.log(`    - Errors: ${profileResult.errors.length}`)
+        profileResult.errors.forEach(error => console.log(`      ⚠️  ${error}`))
+      }
+      
+      // Show top 3 most relevant items
+      if (profileResult.processedFeedItems && profileResult.processedFeedItems.length > 0) {
+        console.log(`\n  🔥 Top relevant items:`)
+        profileResult.processedFeedItems.slice(0, 3).forEach((item, index) => {
+          console.log(`    ${index + 1}. "${item.title}" (score: ${item.relevanceScore?.toFixed(3)})`)
+          console.log(`       ${item.url}`)
+        })
+      }
+    } else {
+      console.log('  No active profiles found')
+    }
+    
     console.log('\n✨ Demo completed successfully!')
     
   } catch (error) {
