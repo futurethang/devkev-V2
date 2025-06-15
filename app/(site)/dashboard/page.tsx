@@ -42,6 +42,11 @@ interface AggregatorResult {
     activeProvider: string
     providersReady: number
   }
+  cached?: boolean
+  stale?: boolean
+  cacheAge?: number
+  message?: string
+  remainingRequests?: number
 }
 
 interface ConfigData {
@@ -71,6 +76,23 @@ interface ConfigData {
 }
 
 export default function DashboardPage() {
+  // Simple admin check - in production, use proper authentication
+  const [isAdmin, setIsAdmin] = useState(false)
+  
+  useEffect(() => {
+    // Check for admin access
+    const adminKey = new URLSearchParams(window.location.search).get('admin')
+    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    
+    // Allow access on localhost or with admin key
+    if (isLocalhost || adminKey === process.env.NEXT_PUBLIC_ADMIN_KEY) {
+      setIsAdmin(true)
+      // Store in session
+      sessionStorage.setItem('admin-access', 'true')
+    } else if (sessionStorage.getItem('admin-access') === 'true') {
+      setIsAdmin(true)
+    }
+  }, [])
   const [loading, setLoading] = useState(true)
   const [aiEnabled, setAiEnabled] = useState(false)
   const [selectedProfile, setSelectedProfile] = useState<string>('')
@@ -78,6 +100,24 @@ export default function DashboardPage() {
   const [config, setConfig] = useState<ConfigData | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [lastRefresh, setLastRefresh] = useState<Date | null>(null)
+  const [isManualRefresh, setIsManualRefresh] = useState(false)
+  
+  // Redirect non-admin users
+  if (!loading && !isAdmin) {
+    return (
+      <div className={styles.container}>
+        <div className={styles.accessDenied}>
+          <h1>Admin Access Required</h1>
+          <p>This dashboard is for administrative use only.</p>
+          <p>
+            <a href="/digest" className={styles.digestLink}>
+              Visit the public AI Digest →
+            </a>
+          </p>
+        </div>
+      </div>
+    )
+  }
 
   // Load configuration data
   useEffect(() => {
@@ -107,7 +147,7 @@ export default function DashboardPage() {
     }
   }
 
-  const fetchAggregatorData = async () => {
+  const fetchAggregatorData = async (forceRefresh = false) => {
     if (!selectedProfile) return
     
     setLoading(true)
@@ -120,7 +160,18 @@ export default function DashboardPage() {
         includeItems: 'true'
       })
       
+      if (forceRefresh) {
+        params.set('refresh', 'true')
+      }
+      
       const response = await fetch(`/api/aggregator?${params}`)
+      
+      if (response.status === 429) {
+        const errorData = await response.json()
+        setError(`${errorData.error}. Remaining requests: ${errorData.requestCount}/${errorData.maxRequests}`)
+        return
+      }
+      
       if (!response.ok) throw new Error('Failed to fetch aggregator data')
       
       const data = await response.json()
@@ -135,6 +186,38 @@ export default function DashboardPage() {
 
   const refreshData = async () => {
     await fetchAggregatorData()
+  }
+  
+  const manualRefresh = async () => {
+    setIsManualRefresh(true)
+    try {
+      const response = await fetch('/api/aggregator', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: 'refresh',
+          profileId: selectedProfile,
+          aiEnabled: aiEnabled
+        })
+      })
+      
+      if (!response.ok) throw new Error('Manual refresh failed')
+      
+      const result = await response.json()
+      if (result.success) {
+        setAggregatorData(result.result)
+        setLastRefresh(new Date())
+        setError(null)
+      } else {
+        throw new Error('Manual refresh failed')
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Manual refresh failed')
+    } finally {
+      setIsManualRefresh(false)
+    }
   }
 
   const formatTimeAgo = (dateString: string) => {
@@ -216,13 +299,23 @@ export default function DashboardPage() {
           </label>
         </div>
 
-        <button
-          onClick={refreshData}
-          disabled={loading}
-          className={styles.refreshButton}
-        >
-          {loading ? '⏳' : '🔄'} Refresh
-        </button>
+        <div className={styles.refreshButtons}>
+          <button
+            onClick={refreshData}
+            disabled={loading}
+            className={styles.refreshButton}
+          >
+            {loading ? '⏳' : '🔄'} Refresh
+          </button>
+          <button
+            onClick={manualRefresh}
+            disabled={isManualRefresh}
+            className={`${styles.refreshButton} ${styles.manualRefresh}`}
+            title="Force refresh (bypasses daily limits)"
+          >
+            {isManualRefresh ? '⏳' : '⚡'} Force Refresh
+          </button>
+        </div>
       </div>
 
       {aggregatorData && (
@@ -246,6 +339,12 @@ export default function DashboardPage() {
               <h3>🗑️ Duplicates</h3>
               <p className={styles.statValue}>{aggregatorData.duplicatesRemoved}</p>
             </div>
+            <div className={styles.statCard}>
+              <h3>📡 Data Source</h3>
+              <p className={styles.statValue}>
+                {aggregatorData.cached ? '💾 Cache' : '🌐 Live'}
+              </p>
+            </div>
             {aggregatorData.aiEnabled && aggregatorData.aiStats && (
               <div className={styles.statCard}>
                 <h3>🤖 AI Provider</h3>
@@ -254,9 +353,34 @@ export default function DashboardPage() {
             )}
           </div>
 
-          {lastRefresh && (
-            <div className={styles.lastRefresh}>
-              Last updated: {lastRefresh.toLocaleTimeString()}
+          {aggregatorData && (
+            <div className={styles.cacheInfo}>
+              <div className={styles.lastRefresh}>
+                {lastRefresh && `Last updated: ${lastRefresh.toLocaleTimeString()}`}
+                {aggregatorData.cached && (
+                  <span className={`${styles.cacheStatus} ${aggregatorData.stale ? styles.stale : styles.fresh}`}>
+                    📁 {aggregatorData.stale ? 'Stale cache' : 'Cached'} 
+                    ({aggregatorData.cacheAge}min old)
+                  </span>
+                )}
+                {!aggregatorData.cached && (
+                  <span className={styles.cacheStatus}>
+                    ✨ Fresh data
+                  </span>
+                )}
+              </div>
+              
+              {aggregatorData.message && (
+                <div className={`${styles.message} ${aggregatorData.stale ? styles.warning : styles.info}`}>
+                  ℹ️ {aggregatorData.message}
+                </div>
+              )}
+              
+              {typeof aggregatorData.remainingRequests === 'number' && (
+                <div className={styles.requestLimits}>
+                  🎯 Daily requests remaining: {aggregatorData.remainingRequests}/2
+                </div>
+              )}
             </div>
           )}
 

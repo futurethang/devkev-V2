@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
             enabled: profile.enabled,
             sources: profile.sources,
             focus: {
-              description: profile.focus.description
+              description: profile.focus?.description || profile.description || 'No description available'
             },
             processing: profile.processing
           }))
@@ -87,7 +87,7 @@ export async function GET(request: NextRequest) {
             enabled: profile.enabled,
             sources: profile.sources,
             focus: {
-              description: profile.focus.description
+              description: profile.focus?.description || profile.description || 'No description available'
             },
             processing: profile.processing
           }))

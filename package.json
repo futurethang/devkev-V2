@@ -13,7 +13,10 @@
     "content:build": "contentlayer build",
     "test": "cd aggregator && vitest",
     "test:ui": "cd aggregator && vitest --ui",
-    "test:run": "cd aggregator && vitest run"
+    "test:run": "cd aggregator && vitest run",
+    "aggregator:run": "tsx aggregator/run-aggregator.ts",
+    "aggregator:view": "tsx aggregator/view-results.ts",
+    "research:intervals": "tsx aggregator/research-intervals.ts"
   },
   "dependencies": {
     "contentlayer": "^0.3.4",

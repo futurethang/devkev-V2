@@ -204,4 +204,23 @@ export class ConfigLoader {
       throw new Error(`Failed to get config summary: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
   }
+
+  /**
+   * Load all profiles (both enabled and disabled)
+   */
+  async getAllProfiles(): Promise<FocusProfile[]> {
+    const profileIds = await this.getAvailableProfiles()
+    const profiles: FocusProfile[] = []
+    
+    for (const profileId of profileIds) {
+      try {
+        const profile = await this.loadProfile(profileId)
+        profiles.push(profile)
+      } catch (error) {
+        console.warn(`Skipping invalid profile ${profileId}:`, error instanceof Error ? error.message : 'Unknown error')
+      }
+    }
+    
+    return profiles
+  }
 }
