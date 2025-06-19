@@ -15,6 +15,7 @@ export const Project = defineDocumentType(() => ({
     githubUrl: { type: 'string', required: false },
     featured: { type: 'boolean', required: false, default: false },
     coverImage: { type: 'string', required: false },
+    mock: { type: 'boolean', required: false, default: false },
   },
   computedFields: {
     url: {
@@ -39,6 +40,7 @@ export const Post = defineDocumentType(() => ({
     tags: { type: 'list', of: { type: 'string' }, required: true },
     published: { type: 'boolean', required: false, default: true },
     coverImage: { type: 'string', required: false },
+    mock: { type: 'boolean', required: false, default: false },
   },
   computedFields: {
     url: {
@@ -64,6 +66,7 @@ export const Experiment = defineDocumentType(() => ({
     demoUrl: { type: 'string', required: false },
     sourceUrl: { type: 'string', required: false },
     buildPrompt: { type: 'string', required: false },
+    mock: { type: 'boolean', required: false, default: false },
   },
   computedFields: {
     url: {

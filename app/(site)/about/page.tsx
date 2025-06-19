@@ -197,7 +197,7 @@ export default function AboutPage() {
             <span className={styles.contactIcon}>💻</span>
             GitHub: @futurethang
           </a>
-          <a href="https://linkedin.com/in/kevinhyde" className={styles.contactLink} target="_blank" rel="noopener noreferrer">
+          <a href="https://linkedin.com/in/kevin-hyde-fullstack" className={styles.contactLink} target="_blank" rel="noopener noreferrer">
             <span className={styles.contactIcon}>💼</span>
             LinkedIn: Kevin Hyde
           </a>

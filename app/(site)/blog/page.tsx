@@ -5,10 +5,14 @@ import Fuse from 'fuse.js'
 import { allPosts } from 'contentlayer/generated'
 import { PostCard } from '@/app/_components/PostCard'
 import { SearchAndFilter } from '@/app/_components/SearchAndFilter'
+import { filterMockContent } from '@/lib/content-utils'
 import styles from './page.module.css'
 
 export default function BlogPage() {
-  const publishedPosts = useMemo(() => allPosts.filter(post => post.published), [])
+  const publishedPosts = useMemo(() => {
+    const nonMockPosts = filterMockContent(allPosts)
+    return nonMockPosts.filter(post => post.published)
+  }, [])
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedTags, setSelectedTags] = useState<string[]>([])
   

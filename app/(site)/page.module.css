@@ -6,7 +6,7 @@
 
 .hero {
   text-align: center;
-  margin-bottom: var(--space-20);
+  margin: var(--space-20) 0;
 }
 
 .headline {
@@ -86,6 +86,27 @@
   padding: var(--space-16);
   background-color: var(--color-surface);
   border-radius: var(--radius-lg);
+}
+
+.projectGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: var(--space-6);
+  margin-bottom: var(--space-8);
+}
+
+.viewAll {
+  display: inline-block;
+  color: var(--color-primary);
+  text-decoration: none;
+  font-weight: var(--font-medium);
+  margin-top: var(--space-4);
+  transition: color var(--duration-200);
+}
+
+.viewAll:hover {
+  color: var(--color-primary-dark);
+  text-decoration: underline;
 }
 
 /* Widget Section */

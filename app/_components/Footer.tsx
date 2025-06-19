@@ -14,7 +14,7 @@ export function Footer() {
             <ul className={styles.socialLinks}>
               <li>
                 <a 
-                  href="https://github.com/kevinhyde" 
+                  href="https://github.com/futurethang" 
                   target="_blank" 
                   rel="noopener noreferrer"
                   className={styles.socialLink}
@@ -25,7 +25,7 @@ export function Footer() {
               </li>
               <li>
                 <a 
-                  href="https://linkedin.com/in/kevinhyde" 
+                  href="https://linkedin.com/in/kevin-hyde-fullstack" 
                   target="_blank" 
                   rel="noopener noreferrer"
                   className={styles.socialLink}
@@ -36,7 +36,7 @@ export function Footer() {
               </li>
               <li>
                 <a 
-                  href="mailto:contact@kevinhyde.com"
+                  href="mailto:kphyde@gmail.com"
                   className={styles.socialLink}
                   aria-label="Email contact"
                 >

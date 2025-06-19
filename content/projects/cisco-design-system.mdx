@@ -1,0 +1,251 @@
+---
+title: Cisco Momentum Design System
+description: Optimized enterprise-scale design system libraries and built standards-compliant Web Components serving thousands of developers across Cisco products.
+date: 2021-11-30
+tags:
+  - Design Systems
+  - Web Components
+  - Accessibility
+  - Enterprise
+  - Open Source
+aiAssisted: false
+buildTime: "2 years"
+liveUrl: https://momentum.design
+githubUrl: https://github.com/momentum-design/momentum-ui
+featured: true
+coverImage: /images/projects/cisco-momentum.png
+mock: true
+---
+
+## Overview
+
+As UX Engineer II at Cisco, I contributed to the Momentum Design System - a comprehensive component library serving dozens of product teams and thousands of developers. My focus was on optimizing performance, improving developer experience, and ensuring accessibility compliance across all components.
+
+## Key Contributions
+
+### 🚀 Performance Optimization
+
+Reduced bundle sizes and improved runtime performance across the component library:
+
+```javascript
+// Before: Monolithic imports
+import { Button, Input, Modal, Table } from '@momentum/ui';
+
+// After: Tree-shakeable architecture
+import Button from '@momentum/ui/button';
+import Input from '@momentum/ui/input';
+// Results in 60% smaller bundles
+```
+
+Implemented lazy-loading strategies for complex components:
+
+```typescript
+// Dynamic imports for heavy components
+const Modal = lazy(() => 
+  import(/* webpackChunkName: "modal" */ './components/Modal')
+);
+
+// Intersection Observer for viewport-based loading
+const LazyTable = () => {
+  const [isVisible, setIsVisible] = useState(false);
+  const tableRef = useRef(null);
+  
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => entry.isIntersecting && setIsVisible(true)
+    );
+    observer.observe(tableRef.current);
+  }, []);
+  
+  return isVisible ? <Table /> : <div ref={tableRef} />;
+};
+```
+
+### ♿ Accessibility Excellence
+
+Led the accessibility audit and remediation effort:
+
+- **WCAG 2.1 AA Compliance** across all components
+- **Screen reader testing** with JAWS, NVDA, and VoiceOver
+- **Keyboard navigation** patterns following ARIA best practices
+- **High contrast mode** support for Windows users
+
+Created comprehensive accessibility documentation:
+
+```typescript
+// Example: Accessible component patterns
+interface AccessibleButtonProps {
+  label: string;
+  ariaPressed?: boolean;
+  ariaExpanded?: boolean;
+  ariaControls?: string;
+  onActivate: (event: ActivationEvent) => void;
+}
+
+const AccessibleButton: FC<AccessibleButtonProps> = ({
+  label,
+  ariaPressed,
+  ariaExpanded,
+  ariaControls,
+  onActivate
+}) => {
+  const handleKeyDown = (e: KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      onActivate({ type: 'keyboard', key: e.key });
+    }
+  };
+  
+  return (
+    <button
+      aria-label={label}
+      aria-pressed={ariaPressed}
+      aria-expanded={ariaExpanded}
+      aria-controls={ariaControls}
+      onClick={(e) => onActivate({ type: 'mouse' })}
+      onKeyDown={handleKeyDown}
+    >
+      {label}
+    </button>
+  );
+};
+```
+
+### 📚 Developer Experience
+
+Improved component APIs and documentation:
+
+#### Before:
+```javascript
+<Modal 
+  show={true} 
+  onHide={() => {}} 
+  size="lg" 
+  backdrop={true}
+  keyboard={true}
+>
+  Content
+</Modal>
+```
+
+#### After:
+```javascript
+<Modal open onClose={() => {}} size="large">
+  <Modal.Header>Title</Modal.Header>
+  <Modal.Body>Content</Modal.Body>
+  <Modal.Footer>
+    <Button variant="primary">Save</Button>
+  </Modal.Footer>
+</Modal>
+```
+
+### 🎨 Theme Architecture
+
+Designed a flexible theming system supporting multiple brands:
+
+```css
+/* Token-based design system */
+:root {
+  /* Primitive tokens */
+  --momentum-blue-10: #e6f7ff;
+  --momentum-blue-50: #1890ff;
+  --momentum-blue-90: #002766;
+  
+  /* Semantic tokens */
+  --momentum-color-primary: var(--momentum-blue-50);
+  --momentum-color-background: var(--momentum-gray-10);
+  --momentum-color-text: var(--momentum-gray-90);
+  
+  /* Component tokens */
+  --momentum-button-height: 36px;
+  --momentum-button-padding: 0 16px;
+}
+
+/* Dark theme override */
+[data-theme="dark"] {
+  --momentum-color-background: var(--momentum-gray-90);
+  --momentum-color-text: var(--momentum-gray-10);
+}
+```
+
+## Impact & Adoption
+
+### Metrics
+
+- **50+ Product Teams** adopted Momentum components
+- **10,000+ Developers** using the system daily
+- **95% Accessibility Score** across all components
+- **40% Reduction** in UI development time
+
+### Open Source Success
+
+The project gained traction in the open source community:
+
+- 1,500+ GitHub stars
+- 200+ contributors
+- Used by external companies
+- Regular conference presentations
+
+## Technical Architecture
+
+### Monorepo Structure
+
+```
+momentum-ui/
+├── packages/
+│   ├── core/          # Framework-agnostic styles
+│   ├── react/         # React components
+│   ├── web-components/# Standards-based components
+│   ├── icons/         # SVG icon system
+│   └── tokens/        # Design tokens
+├── docs/              # Documentation site
+├── tools/             # Build and development tools
+└── examples/          # Sample applications
+```
+
+### Build Pipeline
+
+Implemented sophisticated build process:
+
+- Automated visual regression testing
+- Cross-browser compatibility checks
+- Bundle size monitoring
+- Performance benchmarking
+- Accessibility validation
+
+## Lessons Learned
+
+### Enterprise Scale Challenges
+
+Working on a design system at Cisco's scale taught me:
+
+1. **Migration Strategies**: How to evolve APIs without breaking thousands of implementations
+2. **Communication**: The importance of clear deprecation policies and migration guides
+3. **Performance**: Every kilobyte matters when you're in every Cisco product
+4. **Flexibility**: Supporting diverse use cases while maintaining consistency
+
+### The Power of Web Standards
+
+Building Web Components alongside React components showed me the value of framework-agnostic approaches:
+
+```javascript
+// Once defined, works everywhere
+<momentum-button variant="primary" size="large">
+  Click me
+</momentum-button>
+```
+
+This worked in React apps, Angular apps, vanilla JavaScript, and even server-side rendered pages.
+
+## Recognition
+
+The Momentum Design System work led to:
+
+- Speaking opportunity at Cisco Live 2021
+- Internal innovation award
+- Promotion to senior-level role offers
+- Continued involvement as open source maintainer
+
+## Conclusion
+
+The Cisco Momentum Design System project represents the kind of infrastructure work I'm passionate about - building tools that multiply the effectiveness of other developers while ensuring inclusive, performant user experiences.

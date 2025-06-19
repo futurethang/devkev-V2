@@ -5,33 +5,37 @@ import Fuse from 'fuse.js'
 import { allProjects } from 'contentlayer/generated'
 import { ProjectCard } from '@/app/_components/ProjectCard'
 import { SearchAndFilter } from '@/app/_components/SearchAndFilter'
+import { filterMockContent } from '@/lib/content-utils'
 import styles from './page.module.css'
 
 export default function ProjectsPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedTags, setSelectedTags] = useState<string[]>([])
   
+  // Filter out mock content in production
+  const projects = useMemo(() => filterMockContent(allProjects), [])
+  
   // Get all unique tags from projects
   const allTags = useMemo(() => {
     const tags = new Set<string>()
-    allProjects.forEach(project => {
+    projects.forEach(project => {
       project.tags.forEach(tag => tags.add(tag))
     })
     return Array.from(tags).sort()
-  }, [])
+  }, [projects])
 
   // Initialize Fuse.js for fuzzy search
   const fuse = useMemo(() => {
-    return new Fuse(allProjects, {
+    return new Fuse(projects, {
       keys: ['title', 'description', 'tags'],
       threshold: 0.3,
       includeScore: true,
     })
-  }, [])
+  }, [projects])
 
   // Filter projects based on search and tags
   const filteredProjects = useMemo(() => {
-    let result = allProjects
+    let result = projects
 
     // Apply fuzzy search
     if (searchQuery.trim()) {

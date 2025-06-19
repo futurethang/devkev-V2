@@ -1,0 +1,173 @@
+---
+title: Swivel Finance DeFi Platform
+description: Pioneered Web Components-based interface for fixed-rate lending protocol in the dynamic DeFi landscape, focusing on accessibility and user trust.
+date: 2023-06-20
+tags:
+  - Web Components
+  - DeFi
+  - TypeScript
+  - Ethereum
+  - UX Design
+aiAssisted: false
+buildTime: "18 months"
+liveUrl: https://swivel.finance
+githubUrl: https://github.com/Swivel-Finance/swivel-ui
+featured: true
+coverImage: /images/projects/swivel-defi.png
+mock: true
+---
+
+## Overview
+
+As Senior UX Engineer at Swivel Finance, I led the front-end development of a decentralized fixed-rate lending protocol interface. The challenge was making complex DeFi mechanics accessible to both crypto natives and traditional finance users.
+
+## Key Contributions
+
+### 🧩 Web Components Architecture
+
+Chose Web Components for true framework agnosticism and long-term maintainability:
+
+```javascript
+// Custom element for yield curve visualization
+class YieldCurve extends HTMLElement {
+  constructor() {
+    super();
+    this.attachShadow({ mode: 'open' });
+  }
+  
+  connectedCallback() {
+    this.render();
+    this.subscribeToMarketData();
+  }
+  
+  render() {
+    this.shadowRoot.innerHTML = `
+      <style>
+        :host {
+          display: block;
+          /* Encapsulated styles */
+        }
+      </style>
+      <canvas id="curve"></canvas>
+    `;
+  }
+}
+
+customElements.define('yield-curve', YieldCurve);
+```
+
+### 💱 Complex Financial Interactions
+
+Designed intuitive interfaces for sophisticated financial operations:
+
+- **Order book visualization** for fixed-rate markets
+- **Position management** dashboard with P&L tracking
+- **Liquidity provision** flows with impermanent loss warnings
+- **Multi-step transaction** flows with clear state management
+
+### 🔐 Security-First Design
+
+In DeFi, security and transparency are paramount:
+
+- Clear transaction previews before wallet signing
+- Real-time slippage protection indicators
+- Educational tooltips for every financial term
+- Prominent risk warnings for volatile positions
+
+## Technical Challenges
+
+### Real-Time Data Synchronization
+
+DeFi protocols require constant synchronization with blockchain state:
+
+```typescript
+class MarketDataSync {
+  private provider: ethers.Provider;
+  private contracts: Map<string, Contract>;
+  
+  async syncMarketData() {
+    // Subscribe to blockchain events
+    this.contracts.forEach((contract, name) => {
+      contract.on('MarketUpdate', this.handleMarketUpdate);
+      contract.on('OrderFilled', this.handleOrderFilled);
+    });
+  }
+  
+  handleMarketUpdate = async (event: MarketUpdateEvent) => {
+    // Update UI with new rates
+    this.broadcastUpdate({
+      market: event.market,
+      rate: event.rate,
+      volume: event.volume
+    });
+  };
+}
+```
+
+### Gas Optimization UI
+
+Created interfaces that help users optimize transaction costs:
+
+- Gas price recommendations based on network congestion
+- Batch transaction suggestions
+- Clear cost breakdowns in USD equivalent
+
+## Design Philosophy
+
+### Bridging TradFi and DeFi
+
+Many Swivel users came from traditional finance backgrounds. The UI needed to speak both languages:
+
+- Familiar trading interfaces with order books and charts
+- Clear mappings between DeFi terms and TradFi equivalents
+- Professional, Bloomberg-terminal-inspired aesthetics
+- Mobile-first responsive design
+
+### Progressive Disclosure
+
+Complex features revealed gradually as users gained expertise:
+
+1. **Beginner**: Simple lend/borrow interface
+2. **Intermediate**: Market making and yield strategies
+3. **Advanced**: Arbitrage tools and API access
+
+## Results & Impact
+
+During my tenure at Swivel:
+
+- 📊 **TVL Growth**: Platform grew from $0 to $25M+ Total Value Locked
+- 👥 **User Adoption**: 5,000+ active users across 40+ countries
+- 🏆 **Industry Recognition**: Featured in DeFi Pulse and The Defiant
+- ⚡ **Performance**: 98+ Lighthouse score maintained
+
+## Lessons in DeFi UX
+
+### Trust Through Transparency
+
+In DeFi, users need to understand exactly what's happening with their funds:
+
+- Show all fees upfront
+- Explain smart contract interactions
+- Provide transaction history with Etherscan links
+- Never hide risks or potential losses
+
+### Accessibility Matters
+
+Made the platform usable for users with varying technical backgrounds:
+
+- Comprehensive onboarding flows
+- In-context education
+- Fallback options for Web3 wallet issues
+- Clear error messages with actionable solutions
+
+## Technical Stack
+
+- **Web Components** with TypeScript
+- **Lit** for reactive components
+- **ethers.js** for blockchain interaction
+- **D3.js** for financial visualizations
+- **Storybook** for component documentation
+
+## Reflection
+
+Working at Swivel taught me how to balance innovation with usability in the fast-paced DeFi space. The Web Components approach proved valuable for long-term maintainability and allowed other teams to integrate our components regardless of their framework choices.

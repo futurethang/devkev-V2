@@ -18,6 +18,7 @@ export function Header() {
               <li><Link href="/lab" className={styles.navLink}>Lab</Link></li>
               <li><Link href="/blog" className={styles.navLink}>Blog</Link></li>
               <li><Link href="/digest" className={styles.navLink}>AI Digest</Link></li>
+              <li><Link href="/test-suite" className={styles.navLink}>Tests</Link></li>
               <li><Link href="/about" className={styles.navLink}>About</Link></li>
             </ul>
             <ThemeToggle />

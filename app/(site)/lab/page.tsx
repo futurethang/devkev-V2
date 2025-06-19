@@ -5,33 +5,37 @@ import Fuse from 'fuse.js'
 import { allExperiments } from 'contentlayer/generated'
 import { ExperimentCard } from '@/app/_components/ExperimentCard'
 import { SearchAndFilter } from '@/app/_components/SearchAndFilter'
+import { filterMockContent } from '@/lib/content-utils'
 import styles from './page.module.css'
 
 export default function LabPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedTags, setSelectedTags] = useState<string[]>([])
   
+  // Filter out mock content in production
+  const experiments = useMemo(() => filterMockContent(allExperiments), [])
+  
   // Get all unique tags from experiments
   const allTags = useMemo(() => {
     const tags = new Set<string>()
-    allExperiments.forEach(experiment => {
+    experiments.forEach(experiment => {
       experiment.tags.forEach(tag => tags.add(tag))
     })
     return Array.from(tags).sort()
-  }, [])
+  }, [experiments])
 
   // Initialize Fuse.js for fuzzy search
   const fuse = useMemo(() => {
-    return new Fuse(allExperiments, {
+    return new Fuse(experiments, {
       keys: ['title', 'description', 'tags', 'buildPrompt'],
       threshold: 0.3,
       includeScore: true,
     })
-  }, [])
+  }, [experiments])
 
   // Filter experiments based on search and tags
   const filteredExperiments = useMemo(() => {
-    let result = allExperiments
+    let result = experiments
 
     // Apply fuzzy search
     if (searchQuery.trim()) {

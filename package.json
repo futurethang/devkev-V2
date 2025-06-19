@@ -16,7 +16,9 @@
     "test:run": "cd aggregator && vitest run",
     "aggregator:run": "tsx aggregator/run-aggregator.ts",
     "aggregator:view": "tsx aggregator/view-results.ts",
-    "research:intervals": "tsx aggregator/research-intervals.ts"
+    "research:intervals": "tsx aggregator/research-intervals.ts",
+    "test:e2e": "tsx aggregator/test-e2e.ts",
+    "test:e2e:verbose": "tsx aggregator/test-e2e.ts --verbose"
   },
   "dependencies": {
     "contentlayer": "^0.3.4",
