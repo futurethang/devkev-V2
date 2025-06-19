@@ -468,6 +468,20 @@
       "profileId": "design-systems",
       "timestamp": "2025-06-19T17:25:27.923Z",
       "sessionId": "session-1750265239821-o0fpigysb"
+    },
+    {
+      "itemId": "test-item-123",
+      "action": "view",
+      "profileId": "ai-product",
+      "timestamp": "2025-06-19T18:16:35.883Z",
+      "sessionId": "session-1750265239821-o0fpigysb"
+    },
+    {
+      "itemId": "test-item-123",
+      "action": "click",
+      "profileId": "ai-product",
+      "timestamp": "2025-06-19T18:16:35.897Z",
+      "sessionId": "session-1750265239821-o0fpigysb"
     }
   ],
   "summary": {
@@ -507,11 +521,11 @@
       "lastEngagement": "2025-06-19T17:25:26.161Z"
     },
     "test-item-123": {
-      "views": 5,
-      "clicks": 5,
+      "views": 6,
+      "clicks": 6,
       "ctr": 1,
       "profile": "ai-product",
-      "lastEngagement": "2025-06-19T17:22:38.084Z"
+      "lastEngagement": "2025-06-19T18:16:35.897Z"
     },
     "https://dev.to/kousay_najar_c0242646d307/understanding-the-mcp-concept-model-context-protocol-139a": {
       "views": 5,

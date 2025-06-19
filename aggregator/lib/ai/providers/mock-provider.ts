@@ -132,7 +132,7 @@ export class MockAIProvider extends BaseAIProvider {
     ]
 
     // Select tags based on content
-    const selectedTags = []
+    const selectedTags: string[] = []
     const contentLower = content.toLowerCase()
 
     // Always include some AI-related tags for mock responses

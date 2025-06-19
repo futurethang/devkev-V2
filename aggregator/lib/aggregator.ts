@@ -218,12 +218,12 @@ export class Aggregator {
       
       // Calculate metrics
       const totalItems = allFeedItems.length
-      const successfulFetches = fetchResults.filter(result => result.success).length
+      const successfulFetches = sourceResults.filter(result => result.success).length
       const avgRelevanceScore = processedItems.length > 0 
         ? processedItems.reduce((sum, item) => sum + (item.relevanceScore || 0), 0) / processedItems.length
         : 0
       
-      const errors = fetchResults
+      const errors = sourceResults
         .filter(result => !result.success && result.error)
         .map(result => `${result.sourceId}: ${result.error}`)
 
@@ -281,12 +281,12 @@ export class Aggregator {
       }
 
       // Fetch from all sources in parallel
-      const fetchPromises = sources.map(source => this.fetchFromSource(source))
-      const fetchResults = await Promise.all(fetchPromises)
+      const fetchPromises = sources.map(source => this.fetchAndParseSource(source))
+      const sourceResults = await Promise.all(fetchPromises)
       
       // Collect all feed items
       const allFeedItems: FeedItem[] = []
-      fetchResults.forEach((result, index) => {
+      sourceResults.forEach((result, index) => {
         if (result.success && result.items) {
           allFeedItems.push(...result.items)
         }
@@ -318,19 +318,19 @@ export class Aggregator {
       
       // Calculate metrics
       const totalItems = allFeedItems.length
-      const successfulFetches = fetchResults.filter(result => result.success).length
+      const successfulFetches = sourceResults.filter(result => result.success).length
       const avgRelevanceScore = processedItems.length > 0 
         ? processedItems.reduce((sum, item) => sum + (item.relevanceScore || 0), 0) / processedItems.length
         : 0
       
-      const errors = fetchResults
+      const errors = sourceResults
         .filter(result => !result.success && result.error)
         .map(result => `${result.sourceId}: ${result.error}`)
 
       const result: ProfileFetchResult & { aiStats?: any } = {
         profileId: profile.id,
         profileName: profile.name,
-        fetchResults: fetchResults.map((result, index) => ({
+        fetchResults: sourceResults.map((result, index) => ({
           sourceId: sources[index].id,
           success: result.success,
           itemCount: result.items?.length || 0,

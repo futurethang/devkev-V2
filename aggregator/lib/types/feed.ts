@@ -33,7 +33,7 @@ export interface FeedItem {
   relevanceScore?: number
   
   /** AI-generated summary */
-  aiSummary?: string
+  aiSummary?: string | any
   
   /** Raw metadata from the original source */
   metadata?: Record<string, unknown>

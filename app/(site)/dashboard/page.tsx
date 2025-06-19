@@ -78,6 +78,14 @@ interface ConfigData {
 export default function DashboardPage() {
   // Simple admin check - in production, use proper authentication
   const [isAdmin, setIsAdmin] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [aiEnabled, setAiEnabled] = useState(false)
+  const [selectedProfile, setSelectedProfile] = useState<string>('')
+  const [aggregatorData, setAggregatorData] = useState<AggregatorResult | null>(null)
+  const [config, setConfig] = useState<ConfigData | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [lastRefresh, setLastRefresh] = useState<Date | null>(null)
+  const [isManualRefresh, setIsManualRefresh] = useState(false)
   
   useEffect(() => {
     // Check for admin access
@@ -92,15 +100,22 @@ export default function DashboardPage() {
     } else if (sessionStorage.getItem('admin-access') === 'true') {
       setIsAdmin(true)
     }
+    setLoading(false)
   }, [])
-  const [loading, setLoading] = useState(true)
-  const [aiEnabled, setAiEnabled] = useState(false)
-  const [selectedProfile, setSelectedProfile] = useState<string>('')
-  const [aggregatorData, setAggregatorData] = useState<AggregatorResult | null>(null)
-  const [config, setConfig] = useState<ConfigData | null>(null)
-  const [error, setError] = useState<string | null>(null)
-  const [lastRefresh, setLastRefresh] = useState<Date | null>(null)
-  const [isManualRefresh, setIsManualRefresh] = useState(false)
+
+  // Load configuration data
+  useEffect(() => {
+    if (isAdmin) {
+      fetchConfig()
+    }
+  }, [isAdmin])
+
+  // Load aggregator data when profile or AI setting changes
+  useEffect(() => {
+    if (config && selectedProfile && isAdmin) {
+      fetchAggregatorData()
+    }
+  }, [selectedProfile, aiEnabled, config, isAdmin])
   
   // Redirect non-admin users
   if (!loading && !isAdmin) {
@@ -118,18 +133,6 @@ export default function DashboardPage() {
       </div>
     )
   }
-
-  // Load configuration data
-  useEffect(() => {
-    fetchConfig()
-  }, [])
-
-  // Load aggregator data when profile or AI setting changes
-  useEffect(() => {
-    if (config && selectedProfile) {
-      fetchAggregatorData()
-    }
-  }, [selectedProfile, aiEnabled, config])
 
   const fetchConfig = async () => {
     try {

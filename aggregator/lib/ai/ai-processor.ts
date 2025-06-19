@@ -92,7 +92,7 @@ export class AIProcessor {
       if (opts.generateSummary) {
         enhanced.aiSummary = await this.activeProvider!.generateSummary(
           item.content,
-          profile?.focus?.description
+          profile?.description
         )
         enhanced.aiSummary.relevanceScore = enhanced.relevanceScore
       }
@@ -111,15 +111,15 @@ export class AIProcessor {
       if (opts.extractInsights) {
         enhanced.aiInsights = await this.activeProvider!.extractInsights(
           item.content,
-          profile?.focus?.description
+          profile?.description
         )
       }
 
       // Calculate semantic relevance score
-      if (opts.calculateSemanticScore && profile?.focus?.description) {
+      if (opts.calculateSemanticScore && profile?.description) {
         enhanced.semanticScore = await this.activeProvider!.calculateSemanticRelevance(
           item.content,
-          profile.focus.description
+          profile.description
         )
       }
 
@@ -222,14 +222,14 @@ export class AIProcessor {
     keywordScore: number,
     profile?: FocusProfile
   ): Promise<number> {
-    if (!profile?.focus?.description || !this.isReady()) {
+    if (!profile?.description || !this.isReady()) {
       return keywordScore
     }
 
     try {
       const semanticScore = await this.activeProvider!.calculateSemanticRelevance(
         item.content,
-        profile.focus.description
+        profile.description
       )
 
       // Combine keyword and semantic scores (weighted average)
@@ -258,7 +258,7 @@ export class AIProcessor {
       .join('\n\n')
       .substring(0, 8000) // Limit content length
 
-    const focusDescription = profile?.focus?.description || 'general technology trends'
+    const focusDescription = profile?.description || 'general technology trends'
     
     return this.activeProvider!.generateSummary(content, focusDescription)
   }

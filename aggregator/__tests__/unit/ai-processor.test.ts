@@ -26,19 +26,16 @@ describe('AIProcessor', () => {
     mockProfile = {
       id: 'ai-product',
       name: 'AI Product Builder',
-      focus: {
-        description: 'AI-powered product development, machine learning integration, and modern web technologies',
-        keywords: {
-          boost: {
-            high: ['ai', 'machine learning', 'product development'],
-            medium: ['react', 'javascript', 'api'],
-            low: ['web', 'frontend', 'backend']
-          },
-          suppress: {
-            high: ['cryptocurrency', 'blockchain'],
-            medium: ['gaming', 'mobile'],
-            low: ['legacy', 'deprecated']
-          },
+      description: 'AI-powered product development, machine learning integration, and modern web technologies',
+      weight: 1.0,
+      keywords: {
+        boost: {
+          high: ['ai', 'machine learning', 'product development'],
+          medium: ['react', 'javascript', 'api'],
+          low: ['web', 'frontend', 'backend']
+        },
+        filter: {
+          exclude: ['cryptocurrency', 'blockchain'],
           require: []
         }
       },

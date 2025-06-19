@@ -1,5 +1,5 @@
 import { Aggregator } from '../aggregator'
-import { Source, FeedItem } from '../types'
+import { SourceConfig, FeedItem } from '../types/feed'
 import fs from 'fs/promises'
 import path from 'path'
 
@@ -65,9 +65,9 @@ export class IntervalOptimizer {
     // Run research fetches
     while (this.isRunning && new Date() < endDate) {
       const sources = await this.aggregator['configLoader'].loadSources()
-      const enabledSources = sources.filter(s => s.enabled)
+      const enabledSourceConfigs = sources.filter(s => s.enabled)
 
-      for (const source of enabledSources) {
+      for (const source of enabledSourceConfigs) {
         // Try different intervals for each source
         const testInterval = this.getNextTestInterval(source.id)
         await this.performResearchFetch(source, testInterval)
@@ -94,7 +94,7 @@ export class IntervalOptimizer {
   /**
    * Perform a research fetch and collect data
    */
-  private async performResearchFetch(source: Source, interval: number): Promise<void> {
+  private async performResearchFetch(source: SourceConfig, interval: number): Promise<void> {
     const startTime = Date.now()
     
     try {
@@ -201,7 +201,7 @@ export class IntervalOptimizer {
    */
   async generateRecommendations(): Promise<IntervalResearchResult[]> {
     const data = await this.loadResearchData()
-    const sources = await this.aggregator['configLoader'].loadSources()
+    const sources = await this.aggregator['configLoader'].loadSourceConfigs()
     const results: IntervalResearchResult[] = []
 
     for (const source of sources) {
