@@ -111,13 +111,20 @@ export class HackerNewsParser {
     const count = config.count || 10
     const query = config.query
     
+    let items: FeedItem[]
     if (query) {
       // Use search if query is provided
-      return this.searchStories(query, [], count)
+      items = await this.searchStories(query, [], count)
     } else {
       // Use top stories by default
-      return this.getTopStories(count)
+      items = await this.getTopStories(count)
     }
+    
+    // Add source name to all items
+    return items.map(item => ({
+      ...item,
+      sourceName: source.name
+    }))
   }
 
   /**

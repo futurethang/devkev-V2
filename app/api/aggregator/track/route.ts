@@ -8,7 +8,7 @@ const TRACKING_FILE = path.join(process.cwd(), 'aggregator', 'data', 'engagement
 
 interface EngagementEvent {
   itemId: string
-  action: 'view' | 'click'
+  action: 'view' | 'click' | 'read' | 'unread'
   profileId: string
   timestamp: string
   sessionId?: string
@@ -20,6 +20,8 @@ interface EngagementData {
     [itemId: string]: {
       views: number
       clicks: number
+      reads: number
+      isRead: boolean
       ctr: number // click-through rate
       profile: string
       lastEngagement: string
@@ -55,9 +57,9 @@ export async function POST(request: NextRequest) {
       )
     }
     
-    if (!['view', 'click'].includes(action)) {
+    if (!['view', 'click', 'read', 'unread'].includes(action)) {
       return NextResponse.json(
-        { error: 'Invalid action. Must be "view" or "click"' },
+        { error: 'Invalid action. Must be "view", "click", "read", or "unread"' },
         { status: 400 }
       )
     }
@@ -85,6 +87,8 @@ export async function POST(request: NextRequest) {
       data.summary[itemId] = {
         views: 0,
         clicks: 0,
+        reads: 0,
+        isRead: false,
         ctr: 0,
         profile: profileId,
         lastEngagement: event.timestamp
@@ -95,6 +99,11 @@ export async function POST(request: NextRequest) {
       data.summary[itemId].views++
     } else if (action === 'click') {
       data.summary[itemId].clicks++
+    } else if (action === 'read') {
+      data.summary[itemId].reads++
+      data.summary[itemId].isRead = true
+    } else if (action === 'unread') {
+      data.summary[itemId].isRead = false
     }
     
     // Calculate CTR
@@ -157,7 +166,7 @@ export async function GET(request: NextRequest) {
       .map(([itemId, summary]) => ({
         itemId,
         ...summary,
-        engagementScore: summary.views + (summary.clicks * 5)
+        engagementScore: summary.views + (summary.clicks * 5) + (summary.reads * 3)
       }))
     
     return NextResponse.json({

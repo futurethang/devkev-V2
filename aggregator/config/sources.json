@@ -98,6 +98,102 @@
       "config": {
         "count": 10
       }
+    },
+    {
+      "id": "techcrunch",
+      "name": "TechCrunch",
+      "type": "rss",
+      "url": "https://techcrunch.com/feed/",
+      "fetchInterval": 120,
+      "weight": 0.8,
+      "enabled": true,
+      "config": {
+        "timeout": 10000
+      }
+    },
+    {
+      "id": "stratechery",
+      "name": "Stratechery",
+      "type": "rss",
+      "url": "https://stratechery.com/feed/",
+      "fetchInterval": 1440,
+      "weight": 0.9,
+      "enabled": false,
+      "config": {
+        "timeout": 10000
+      }
+    },
+    {
+      "id": "netflix-tech",
+      "name": "Netflix Tech Blog",
+      "type": "rss",
+      "url": "https://netflixtechblog.com/feed",
+      "fetchInterval": 480,
+      "weight": 0.8,
+      "enabled": true,
+      "config": {
+        "timeout": 10000
+      }
+    },
+    {
+      "id": "meta-engineering",
+      "name": "Engineering at Meta",
+      "type": "rss",
+      "url": "https://engineering.fb.com/feed/",
+      "fetchInterval": 480,
+      "weight": 0.8,
+      "enabled": true,
+      "config": {
+        "timeout": 10000
+      }
+    },
+    {
+      "id": "google-research",
+      "name": "Google Research Blog",
+      "type": "rss",
+      "url": "https://research.google/blog/rss",
+      "fetchInterval": 360,
+      "weight": 0.7,
+      "enabled": true,
+      "config": {
+        "timeout": 10000
+      }
+    },
+    {
+      "id": "google-developers",
+      "name": "Google Developers (Medium)",
+      "type": "rss",
+      "url": "https://medium.com/feed/google-developers",
+      "fetchInterval": 360,
+      "weight": 0.7,
+      "enabled": true,
+      "config": {
+        "timeout": 10000
+      }
+    },
+    {
+      "id": "vercel-blog",
+      "name": "Vercel Blog",
+      "type": "rss",
+      "url": "https://vercel.com/atom",
+      "fetchInterval": 240,
+      "weight": 0.7,
+      "enabled": true,
+      "config": {
+        "timeout": 10000
+      }
+    },
+    {
+      "id": "a-list-apart",
+      "name": "A List Apart",
+      "type": "rss",
+      "url": "https://alistapart.com/main/feed",
+      "fetchInterval": 720,
+      "weight": 0.6,
+      "enabled": true,
+      "config": {
+        "timeout": 10000
+      }
     }
   ]
 }

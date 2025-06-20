@@ -53,12 +53,25 @@ describe('AIProcessor', () => {
   })
 
   describe('Initialization', () => {
-    test('should initialize with default configuration', () => {
+    test('should initialize with appropriate provider based on API keys', () => {
       expect(processor.isReady()).toBe(true)
       
       const stats = processor.getStats()
-      expect(stats.activeProvider).toBe('mock')
-      expect(stats.providersReady).toBe(1)
+      const hasAnthropicKey = !!process.env.ANTHROPIC_API_KEY
+      const hasOpenAIKey = !!process.env.OPENAI_API_KEY
+      
+      if (hasAnthropicKey) {
+        console.log('✅ REAL AI PROVIDER: Using Anthropic Claude')
+        expect(stats.activeProvider).toBe('anthropic')
+      } else if (hasOpenAIKey) {
+        console.log('✅ REAL AI PROVIDER: Using OpenAI')
+        expect(stats.activeProvider).toBe('openai')
+      } else {
+        console.warn('⚠️  MOCK AI PROVIDER: No real API keys configured - using mock responses')
+        expect(stats.activeProvider).toBe('mock')
+      }
+      
+      expect(stats.providersReady).toBeGreaterThanOrEqual(1)
       expect(stats.processing).toBe(false)
     })
 
@@ -134,13 +147,18 @@ describe('AIProcessor', () => {
 
     test('should include processing metadata', async () => {
       const enhanced = await processor.processItem(mockFeedItem, mockProfile)
+      const stats = processor.getStats()
       
       expect(enhanced.processingMetadata).toBeDefined()
-      expect(enhanced.processingMetadata!.provider).toBe('mock')
+      expect(enhanced.processingMetadata!.provider).toBe(stats.activeProvider)
       expect(enhanced.processingMetadata!.model).toBeTruthy()
       expect(enhanced.processingMetadata!.processingTime).toBeGreaterThan(0)
       expect(enhanced.processingMetadata!.confidence).toBeGreaterThanOrEqual(0)
       expect(enhanced.processingMetadata!.confidence).toBeLessThanOrEqual(1)
+      
+      // Log provider info for visibility
+      const providerType = stats.activeProvider === 'mock' ? 'MOCK' : 'REAL'
+      console.log(`🔧 AI Processing: ${providerType} provider (${stats.activeProvider}) processed item with ${enhanced.processingMetadata!.confidence.toFixed(2)} confidence`)
     })
 
     test('should handle processing with minimal options', async () => {

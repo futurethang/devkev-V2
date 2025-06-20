@@ -9,6 +9,7 @@ import type {
 } from './types'
 import type { FeedItem, FocusProfile } from '../types/feed'
 import { MockAIProvider } from './providers/mock-provider'
+import { AnthropicProvider } from './providers/anthropic-provider'
 
 /**
  * Configuration for AI processing
@@ -48,7 +49,25 @@ export class AIProcessor {
    * Initialize all configured AI providers
    */
   private async initializeProviders(): Promise<void> {
-    // Always add mock provider
+    // Initialize Anthropic provider first (preferred)
+    if (process.env.ANTHROPIC_API_KEY) {
+      try {
+        const anthropicProvider = new AnthropicProvider()
+        await anthropicProvider.initialize(this.config.models.anthropic || {
+          provider: 'anthropic',
+          model: 'claude-3-5-haiku-20241022',
+          maxTokens: 800,
+          temperature: 0.2
+        })
+        this.providers.set('anthropic', anthropicProvider)
+        this.activeProvider = anthropicProvider
+        console.log('✅ Anthropic provider initialized successfully')
+      } catch (error) {
+        console.warn('⚠️  Failed to initialize Anthropic provider:', error)
+      }
+    }
+
+    // Always add mock provider as fallback
     const mockProvider = new MockAIProvider()
     await mockProvider.initialize(this.config.models.mock || {
       provider: 'mock',
@@ -58,9 +77,11 @@ export class AIProcessor {
     })
     this.providers.set('mock', mockProvider)
 
-    // TODO: Add real providers (OpenAI, Anthropic) in future iterations
-    // For now, we'll use mock as the default
-    this.activeProvider = mockProvider
+    // Use mock as fallback if no other provider initialized
+    if (!this.activeProvider) {
+      this.activeProvider = mockProvider
+      console.log('📝 Using mock provider (no API keys configured)')
+    }
   }
 
   /**
@@ -306,7 +327,7 @@ export class AIProcessor {
    */
   static async createDefault(): Promise<AIProcessor> {
     const config: AIProcessorConfig = {
-      defaultProvider: 'mock',
+      defaultProvider: process.env.ANTHROPIC_API_KEY ? 'anthropic' : 'mock',
       models: {
         mock: {
           provider: 'mock',
@@ -317,14 +338,14 @@ export class AIProcessor {
         openai: {
           provider: 'openai',
           model: 'gpt-4o-mini',
-          maxTokens: 500,
-          temperature: 0.3
+          maxTokens: 600,
+          temperature: 0.2
         },
         anthropic: {
           provider: 'anthropic',
-          model: 'claude-3-haiku',
-          maxTokens: 500,
-          temperature: 0.3
+          model: 'claude-3-5-haiku-20241022',
+          maxTokens: 800,
+          temperature: 0.2
         },
         local: {
           provider: 'local',

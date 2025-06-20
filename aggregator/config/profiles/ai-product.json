@@ -50,7 +50,14 @@
     "dev-to-ai", 
     "toward-data-science",
     "ai-news-mit",
-    "github-ai-trending"
+    "github-ai-trending",
+    "techcrunch",
+    "netflix-tech",
+    "meta-engineering",
+    "google-research",
+    "google-developers",
+    "vercel-blog",
+    "a-list-apart"
   ],
   "processing": {
     "generateSummary": true,

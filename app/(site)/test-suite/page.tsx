@@ -11,6 +11,8 @@ interface TestResult {
   details?: any
   apiType: 'internal' | 'external' | 'mixed'
   externalCalls?: string[]
+  aiProvider?: 'mock' | 'anthropic' | 'openai' | 'unknown'
+  aiProviderWarning?: string
 }
 
 interface TestSuite {
@@ -157,7 +159,8 @@ export default function TestSuitePage() {
           name: 'AI-enhanced content has summaries', 
           endpoint: '/api/aggregator?profile=ai-product&ai=true&includeItems=true',
           apiType: 'mixed' as const,
-          externalCalls: ['OpenAI API', 'Anthropic Claude', 'Content sources']
+          externalCalls: ['AI Provider (Claude/OpenAI)', 'Content sources'],
+          requiresAI: true
         },
         { 
           name: 'Relevance scores are present', 
@@ -169,7 +172,7 @@ export default function TestSuitePage() {
     }
   ]
 
-  const runTest = async (testName: string, endpoint: string, method = 'GET', apiType: 'internal' | 'external' | 'mixed' = 'internal', externalCalls?: string[]): Promise<TestResult> => {
+  const runTest = async (testName: string, endpoint: string, method = 'GET', apiType: 'internal' | 'external' | 'mixed' = 'internal', externalCalls?: string[], requiresAI = false): Promise<TestResult> => {
     const start = performance.now()
     
     try {
@@ -236,9 +239,24 @@ export default function TestSuitePage() {
         }
       }
 
+      let aiProvider: 'mock' | 'anthropic' | 'openai' | 'unknown' = 'unknown'
+      let aiProviderWarning: string | undefined
+
       if (testName.includes('AI-enhanced content')) {
         if (!result.processedFeedItems || result.processedFeedItems.length === 0) {
           throw new Error('No processed items found')
+        }
+        
+        // Check AI provider status from the response
+        const firstItem = result.processedFeedItems[0]
+        if (firstItem?.processingMetadata?.provider) {
+          aiProvider = firstItem.processingMetadata.provider as typeof aiProvider
+          
+          if (aiProvider === 'mock') {
+            aiProviderWarning = 'Using MOCK AI provider - summaries are generic, not content-specific. Add ANTHROPIC_API_KEY to .env.local for real AI processing.'
+          } else {
+            aiProviderWarning = `Using REAL AI provider (${aiProvider}) - summaries are content-specific and high-quality.`
+          }
         }
       }
 
@@ -248,7 +266,9 @@ export default function TestSuitePage() {
         duration,
         details: result,
         apiType,
-        externalCalls
+        externalCalls,
+        aiProvider,
+        aiProviderWarning
       }
 
     } catch (error) {
@@ -259,7 +279,9 @@ export default function TestSuitePage() {
         duration,
         error: error instanceof Error ? error.message : String(error),
         apiType,
-        externalCalls
+        externalCalls,
+        aiProvider: requiresAI ? 'unknown' : undefined,
+        aiProviderWarning: requiresAI ? 'AI provider test failed - check API configuration' : undefined
       }
     }
   }
@@ -289,7 +311,7 @@ export default function TestSuitePage() {
       
       setTestSuites(prev => prev.map(s => s.name === suite.name ? { ...suite } : s))
 
-      const result = await runTest(test.name, test.endpoint, test.method, test.apiType, test.externalCalls)
+      const result = await runTest(test.name, test.endpoint, test.method, test.apiType, test.externalCalls, test.requiresAI)
       
       // Update the result
       suite.results[suite.results.length - 1] = result
@@ -450,6 +472,18 @@ export default function TestSuitePage() {
                   {result.externalCalls && result.externalCalls.length > 0 && (
                     <div className={styles.externalApis}>
                       <strong>External APIs:</strong> {result.externalCalls.join(', ')}
+                    </div>
+                  )}
+
+                  {result.aiProviderWarning && (
+                    <div className={`${styles.aiProviderStatus} ${result.aiProvider === 'mock' ? styles.warning : styles.success}`}>
+                      <span className={styles.aiProviderIcon}>
+                        {result.aiProvider === 'mock' && '⚠️'}
+                        {result.aiProvider === 'anthropic' && '🧠'}
+                        {result.aiProvider === 'openai' && '🤖'}
+                        {result.aiProvider === 'unknown' && '❓'}
+                      </span>
+                      <strong>AI Provider:</strong> {result.aiProviderWarning}
                     </div>
                   )}
 

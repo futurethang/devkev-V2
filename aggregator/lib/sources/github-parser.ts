@@ -39,7 +39,7 @@ export class GitHubParser {
   /**
    * Search GitHub repositories
    */
-  async searchRepositories(query: string, language?: string, sort: string = 'stars', headers?: Record<string, string>): Promise<FeedItem[]> {
+  async searchRepositories(query: string, language?: string, sort: string = 'stars', headers?: Record<string, string>, sourceName?: string): Promise<FeedItem[]> {
     try {
       let searchQuery = query
       
@@ -68,7 +68,7 @@ export class GitHubParser {
       }
 
       const data: GitHubSearchResponse = await response.json()
-      return data.items.map(repo => this.normalizeRepository(repo))
+      return data.items.map(repo => this.normalizeRepository(repo, sourceName))
     } catch (error) {
       throw new Error(`Failed to search GitHub repositories: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
@@ -84,7 +84,7 @@ export class GitHubParser {
   /**
    * Get trending repositories with custom headers
    */
-  async getTrendingWithHeaders(language?: string, period: 'daily' | 'weekly' | 'monthly' = 'daily', headers: Record<string, string> = {}): Promise<FeedItem[]> {
+  async getTrendingWithHeaders(language?: string, period: 'daily' | 'weekly' | 'monthly' = 'daily', headers: Record<string, string> = {}, sourceName?: string): Promise<FeedItem[]> {
     try {
       // Calculate date for "trending" based on period
       const now = new Date()
@@ -98,7 +98,7 @@ export class GitHubParser {
         query += ` language:${language}`
       }
 
-      return this.searchRepositories(query, undefined, 'stars', headers)
+      return this.searchRepositories(query, undefined, 'stars', headers, sourceName)
     } catch (error) {
       throw new Error(`Failed to get trending repositories: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
@@ -129,7 +129,8 @@ export class GitHubParser {
           config.query,
           config.language,
           'stars',
-          headers
+          headers,
+          source.name
         )
       } else {
         // Default to trending repositories - need to pass headers through getTrending
@@ -137,13 +138,15 @@ export class GitHubParser {
         items = await this.getTrendingWithHeaders(
           config.language,
           config.since as 'daily' | 'weekly' | 'monthly' || 'daily',
-          authHeaders
+          authHeaders,
+          source.name
         )
       }
 
       // Apply source-specific filtering if needed
       return items.map(item => ({
         ...item,
+        sourceName: source.name,
         sourceUrl: source.url || this.baseUrl
       }))
     } catch (error) {
@@ -154,7 +157,7 @@ export class GitHubParser {
   /**
    * Normalize GitHub repository to FeedItem
    */
-  private normalizeRepository(repo: GitHubRepository): FeedItem {
+  private normalizeRepository(repo: GitHubRepository, sourceName?: string): FeedItem {
     const title = repo.full_name
     const content = repo.description || 'No description provided'
     const url = repo.html_url
@@ -180,6 +183,7 @@ export class GitHubParser {
       author,
       publishedAt,
       source: 'github',
+      sourceName,
       sourceUrl: this.baseUrl,
       tags: [...new Set(tags)], // Remove duplicates
       metadata: {

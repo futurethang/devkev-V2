@@ -1,7 +1,8 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import styles from './page.module.css'
+import { useAggregatorData, useTrackEngagement } from '../../../lib/aggregator-query'
 
 interface FeedItem {
   id: string
@@ -11,8 +12,10 @@ interface FeedItem {
   author: string
   publishedAt: string
   source: string
+  sourceName?: string
   tags: string[]
   relevanceScore?: number
+  isRead?: boolean
   aiSummary?: {
     summary: string
     keyPoints: string[]
@@ -20,56 +23,33 @@ interface FeedItem {
     insights?: string[]
   }
   aiTags?: string[]
-}
-
-interface DigestData {
-  profileId: string
-  profileName: string
-  processedFeedItems?: FeedItem[]
-  totalItems: number
-  lastUpdated?: string
+  engagementData?: {
+    views: number
+    clicks: number
+    ctr: number
+    lastEngagement: string
+  }
 }
 
 export default function DigestPage() {
-  const [loading, setLoading] = useState(true)
-  const [digestData, setDigestData] = useState<DigestData | null>(null)
   const [selectedProfile, setSelectedProfile] = useState('ai-product')
-  const [error, setError] = useState<string | null>(null)
+  const [showReadArticles, setShowReadArticles] = useState(true)
+  const [collapseReadArticles, setCollapseReadArticles] = useState(true)
+  const [sortBy, setSortBy] = useState<'relevance' | 'date' | 'unread'>('relevance')
 
-  useEffect(() => {
-    fetchDigestData()
-    
-    // Auto-refresh every 30 minutes
-    const interval = setInterval(fetchDigestData, 30 * 60 * 1000)
-    return () => clearInterval(interval)
-  }, [selectedProfile])
+  // Use React Query for data fetching
+  const { 
+    data: digestData, 
+    isLoading: loading, 
+    error,
+    refetch 
+  } = useAggregatorData(selectedProfile, {
+    includeItems: true,
+    aiEnabled: true,
+    refetchInterval: 30 * 60 * 1000 // 30 minutes
+  })
 
-  const fetchDigestData = async () => {
-    try {
-      const params = new URLSearchParams({
-        profile: selectedProfile,
-        ai: 'true',
-        includeItems: 'true'
-      })
-      
-      const response = await fetch(`/api/aggregator?${params}`)
-      if (!response.ok) throw new Error('Failed to fetch digest')
-      
-      const data = await response.json()
-      setDigestData({
-        profileId: data.profileId,
-        profileName: data.profileName,
-        processedFeedItems: data.processedFeedItems,
-        totalItems: data.totalItems,
-        lastUpdated: data.cached ? new Date(Date.now() - (data.cacheAge || 0) * 60 * 1000).toISOString() : new Date().toISOString()
-      })
-      setError(null)
-    } catch (err) {
-      setError('Unable to load content at this time')
-    } finally {
-      setLoading(false)
-    }
-  }
+  const trackEngagementMutation = useTrackEngagement()
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
@@ -97,13 +77,46 @@ export default function DigestPage() {
     return colors[source] || styles.sourceDefault
   }
 
-  const trackEngagement = (itemId: string, action: 'view' | 'click') => {
-    // Track engagement for future relevancy tuning
-    fetch('/api/aggregator/track', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ itemId, action, profileId: selectedProfile })
-    }).catch(() => {}) // Silent fail for tracking
+  const trackEngagement = (itemId: string, action: 'view' | 'click' | 'read' | 'unread') => {
+    trackEngagementMutation.mutate({ itemId, action, profileId: selectedProfile })
+  }
+
+  const toggleReadStatus = (itemId: string, currentStatus: boolean) => {
+    if (currentStatus) {
+      trackEngagement(itemId, 'unread')
+    } else {
+      trackEngagement(itemId, 'read')
+    }
+  }
+
+  // Filter and sort articles
+  const getFilteredAndSortedArticles = () => {
+    if (!digestData?.processedFeedItems) return []
+    
+    let articles = [...digestData.processedFeedItems]
+    
+    // Filter by read status
+    if (!showReadArticles) {
+      articles = articles.filter(item => !item.isRead)
+    }
+    
+    // Sort articles
+    switch (sortBy) {
+      case 'relevance':
+        articles.sort((a, b) => (b.relevanceScore || 0) - (a.relevanceScore || 0))
+        break
+      case 'date':
+        articles.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime())
+        break
+      case 'unread':
+        articles.sort((a, b) => {
+          if (a.isRead === b.isRead) return (b.relevanceScore || 0) - (a.relevanceScore || 0)
+          return a.isRead ? 1 : -1
+        })
+        break
+    }
+    
+    return articles
   }
 
   if (loading) {
@@ -119,10 +132,19 @@ export default function DigestPage() {
   if (error) {
     return (
       <div className={styles.container}>
-        <div className={styles.error}>{error}</div>
+        <div className={styles.error}>
+          Unable to load content at this time
+          <button onClick={() => refetch()} className={styles.retryButton}>
+            Try Again
+          </button>
+        </div>
       </div>
     )
   }
+
+  const filteredArticles = getFilteredAndSortedArticles()
+  const readCount = digestData?.processedFeedItems?.filter(item => item.isRead).length || 0
+  const totalCount = digestData?.processedFeedItems?.length || 0
 
   return (
     <div className={styles.container}>
@@ -153,35 +175,92 @@ export default function DigestPage() {
               Design Systems
             </button>
           </nav>
+
+          <div className={styles.controls}>
+            <div className={styles.filters}>
+              <label className={styles.checkbox}>
+                <input
+                  type="checkbox"
+                  checked={showReadArticles}
+                  onChange={(e) => setShowReadArticles(e.target.checked)}
+                />
+                Show read articles ({readCount}/{totalCount})
+              </label>
+              
+              {showReadArticles && (
+                <label className={styles.checkbox}>
+                  <input
+                    type="checkbox"
+                    checked={collapseReadArticles}
+                    onChange={(e) => setCollapseReadArticles(e.target.checked)}
+                  />
+                  Collapse read articles
+                </label>
+              )}
+            </div>
+            
+            <div className={styles.sortControls}>
+              <label>Sort by:</label>
+              <select 
+                value={sortBy} 
+                onChange={(e) => setSortBy(e.target.value as 'relevance' | 'date' | 'unread')}
+                className={styles.sortSelect}
+              >
+                <option value="relevance">Relevance</option>
+                <option value="date">Date</option>
+                <option value="unread">Unread first</option>
+              </select>
+            </div>
+          </div>
         </div>
       </header>
 
       <main className={styles.main}>
-        {digestData?.processedFeedItems && digestData.processedFeedItems.length > 0 ? (
+        {filteredArticles.length > 0 ? (
           <>
             <div className={styles.meta}>
               <span className={styles.itemCount}>
-                {digestData.processedFeedItems.length} stories
+                {filteredArticles.length} stories
+                {!showReadArticles && readCount > 0 && (
+                  <span className={styles.hiddenCount}> ({readCount} read hidden)</span>
+                )}
               </span>
               <span className={styles.lastUpdated}>
-                Updated {formatDate(digestData.lastUpdated || new Date().toISOString())}
+                Updated {formatDate(digestData?.cached 
+                  ? new Date(Date.now() - (digestData?.cacheAge || 0) * 60 * 1000).toISOString() 
+                  : new Date().toISOString())}
               </span>
             </div>
 
             <div className={styles.articles}>
-              {digestData.processedFeedItems.map((item, index) => (
+              {filteredArticles.map((item, index) => {
+                const isCollapsed = item.isRead && collapseReadArticles
+                
+                return (
                 <article 
                   key={item.id} 
-                  className={styles.article}
+                  className={`${styles.article} ${item.isRead ? styles.read : ''} ${isCollapsed ? styles.collapsed : ''}`}
                   onMouseEnter={() => trackEngagement(item.id, 'view')}
+                  onClick={isCollapsed ? () => toggleReadStatus(item.id, true) : undefined}
+                  style={isCollapsed ? { cursor: 'pointer' } : undefined}
                 >
                   <div className={styles.articleHeader}>
-                    <span className={`${styles.source} ${getSourceColor(item.source)}`}>
-                      {item.source.toUpperCase()}
-                    </span>
-                    <span className={styles.relevance}>
-                      {Math.round((item.relevanceScore || 0) * 100)}% relevant
-                    </span>
+                    <div className={styles.articleMeta}>
+                      <span className={`${styles.source} ${getSourceColor(item.source)}`}>
+                        {item.sourceName || item.source.toUpperCase()}
+                      </span>
+                      <span className={styles.relevance}>
+                        {Math.round((item.relevanceScore || 0) * 100)}% relevant
+                      </span>
+                      {item.isRead && <span className={styles.readBadge}>✓ Read</span>}
+                    </div>
+                    <button
+                      className={`${styles.readButton} ${item.isRead ? styles.readButtonRead : ''}`}
+                      onClick={() => toggleReadStatus(item.id, item.isRead || false)}
+                      title={item.isRead ? 'Mark as unread' : 'Mark as read'}
+                    >
+                      {item.isRead ? '↺ Unread' : 'Mark as read'}
+                    </button>
                   </div>
 
                   <h2 className={styles.articleTitle}>
@@ -195,35 +274,52 @@ export default function DigestPage() {
                     </a>
                   </h2>
 
-                  <div className={styles.articleMeta}>
-                    <span className={styles.author}>{item.author}</span>
-                    <span className={styles.separator}>•</span>
-                    <span className={styles.time}>{formatDate(item.publishedAt)}</span>
-                  </div>
+                  {!isCollapsed && (
+                    <>
+                      <div className={styles.articleMeta}>
+                        <span className={styles.author}>{item.author}</span>
+                        <span className={styles.separator}>•</span>
+                        <span className={styles.time}>{formatDate(item.publishedAt)}</span>
+                      </div>
 
-                  {item.aiSummary && (
-                    <div className={styles.summary}>
-                      <p>{item.aiSummary.summary}</p>
-                      
-                      {item.aiSummary.keyPoints && item.aiSummary.keyPoints.length > 0 && (
-                        <ul className={styles.keyPoints}>
-                          {item.aiSummary.keyPoints.slice(0, 3).map((point, i) => (
-                            <li key={i}>{point}</li>
-                          ))}
-                        </ul>
+                      {item.aiSummary && typeof item.aiSummary === 'object' && (
+                        <div className={styles.summary}>
+                          <p>{item.aiSummary.summary}</p>
+                          
+                          {item.aiSummary.keyPoints && Array.isArray(item.aiSummary.keyPoints) && item.aiSummary.keyPoints.length > 0 && (
+                            <ul className={styles.keyPoints}>
+                              {item.aiSummary.keyPoints.slice(0, 3).map((point: string, i: number) => (
+                                <li key={i}>{point}</li>
+                              ))}
+                            </ul>
+                          )}
+                        </div>
                       )}
-                    </div>
+
+                      <div className={styles.tags}>
+                        {item.tags && Array.isArray(item.tags) && item.tags.slice(0, 5).map(tag => (
+                          <span key={tag} className={styles.tag}>
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    </>
                   )}
 
-                  <div className={styles.tags}>
-                    {item.tags.slice(0, 5).map(tag => (
-                      <span key={tag} className={styles.tag}>
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
+                  {isCollapsed && (
+                    <div className={styles.collapsedMeta}>
+                      <span className={styles.author}>{item.author}</span>
+                      <span className={styles.separator}>•</span>
+                      <span className={styles.time}>{formatDate(item.publishedAt)}</span>
+                      <span className={styles.separator}>•</span>
+                      <span className={styles.readLabel}>Read</span>
+                      <span className={styles.separator}>•</span>
+                      <span className={styles.expandHint}>Click to expand</span>
+                    </div>
+                  )}
                 </article>
-              ))}
+                )
+              })}
             </div>
           </>
         ) : (

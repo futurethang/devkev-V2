@@ -95,7 +95,7 @@ export class Aggregator {
       // Route to appropriate parser based on source type
       switch (source.type) {
         case 'rss':
-          items = await this.rssParser.fetchAndParse(source.url)
+          items = await this.rssParser.fetchFromSource(source)
           break
         
         case 'github':

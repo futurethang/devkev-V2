@@ -1,5 +1,5 @@
 import Parser from 'rss-parser'
-import type { FeedItem, SourceType } from '../types/feed'
+import type { FeedItem, SourceType, SourceConfig } from '../types/feed'
 
 /**
  * RSS/Atom feed parser that normalizes content into FeedItem format
@@ -19,7 +19,7 @@ export class RSSParser {
   /**
    * Parse RSS feed content and return normalized FeedItems
    */
-  async parseFeed(feedContent: string, sourceUrl: string): Promise<FeedItem[]> {
+  async parseFeed(feedContent: string, sourceUrl: string, sourceName?: string): Promise<FeedItem[]> {
     try {
       const feed = await this.parser.parseString(feedContent)
       
@@ -27,7 +27,7 @@ export class RSSParser {
         return []
       }
 
-      return feed.items.map(item => this.normalizeItem(item, sourceUrl))
+      return feed.items.map(item => this.normalizeItem(item, sourceUrl, sourceName))
     } catch (error) {
       throw new Error(`Failed to parse RSS feed: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
@@ -36,7 +36,7 @@ export class RSSParser {
   /**
    * Fetch RSS feed from URL and parse it
    */
-  async fetchAndParse(feedUrl: string): Promise<FeedItem[]> {
+  async fetchAndParse(feedUrl: string, sourceName?: string): Promise<FeedItem[]> {
     try {
       const response = await fetch(feedUrl)
       
@@ -45,16 +45,23 @@ export class RSSParser {
       }
 
       const feedContent = await response.text()
-      return this.parseFeed(feedContent, feedUrl)
+      return this.parseFeed(feedContent, feedUrl, sourceName)
     } catch (error) {
       throw new Error(`Failed to fetch RSS feed: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
+  }
+  
+  /**
+   * Fetch RSS feed from source configuration
+   */
+  async fetchFromSource(source: SourceConfig): Promise<FeedItem[]> {
+    return this.fetchAndParse(source.url, source.name)
   }
 
   /**
    * Normalize a raw RSS item to our FeedItem format
    */
-  private normalizeItem(item: any, sourceUrl: string): FeedItem {
+  private normalizeItem(item: any, sourceUrl: string, sourceName?: string): FeedItem {
     const id = item.guid || item.link || item.id || `${sourceUrl}-${Date.now()}`
     const title = item.title || 'Untitled'
     const content = item.content || item.description || item.summary || ''
@@ -71,6 +78,7 @@ export class RSSParser {
       author,
       publishedAt,
       source: 'rss' as SourceType,
+      sourceName,
       sourceUrl,
       tags,
       metadata: {

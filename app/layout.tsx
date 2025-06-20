@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import '@/styles/globals.css'
 import 'highlight.js/styles/github-dark.css'
 import styles from './layout.module.css'
+import { QueryProvider } from '@/lib/providers/query-provider'
 
 export const metadata: Metadata = {
   title: {
@@ -62,7 +63,9 @@ export default function RootLayout({
         <a href="#main-content" className={styles.skipToContent}>
           Skip to main content
         </a>
-        {children}
+        <QueryProvider>
+          {children}
+        </QueryProvider>
       </body>
     </html>
   )

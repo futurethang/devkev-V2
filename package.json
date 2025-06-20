@@ -21,6 +21,8 @@
     "test:e2e:verbose": "tsx aggregator/test-e2e.ts --verbose"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.54.0",
+    "@tanstack/react-query": "^5.80.10",
     "contentlayer": "^0.3.4",
     "date-fns": "^3.6.0",
     "fuse.js": "^7.1.0",

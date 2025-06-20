@@ -23,6 +23,9 @@ export interface FeedItem {
   /** Source type (rss, twitter, github, reddit, etc.) */
   source: SourceType
   
+  /** Human-readable source name (e.g. "Hacker News", "Indie Hackers") */
+  sourceName?: string
+  
   /** Original source URL (feed URL, API endpoint, etc.) */
   sourceUrl: string
   
