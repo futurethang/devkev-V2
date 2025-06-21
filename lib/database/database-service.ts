@@ -153,9 +153,16 @@ export class DatabaseService {
       name: profile.name,
       description: profile.description,
       enabled: profile.enabled ?? true,
-      keywords: profile.keywords || [],
+      keywords: [], // Keep empty for now due to schema constraint
       sources: profile.sources || [],
-      processing_config: profile.processing || {}
+      processing_config: {
+        ...(profile.processing || {}),
+        // Store structured keywords in processing_config as workaround
+        keywords: profile.keywords || {
+          boost: { high: [], medium: [], low: [] },
+          filter: { exclude: [], require: [] }
+        }
+      }
     }
     
     const { data, error } = await supabase
@@ -501,15 +508,54 @@ export class DatabaseService {
   }
   
   private mapProfileRowToConfig(row: ProfileRow): FocusProfile {
+    // Handle keywords - could be either an array or stored as JSON in processing_config
+    let validKeywords: any = {
+      boost: {
+        high: [],
+        medium: [],
+        low: []
+      },
+      filter: {
+        exclude: [],
+        require: []
+      }
+    }
+    
+    // Check if keywords are stored in processing_config (temporary workaround)
+    if (row.processing_config?.keywords && typeof row.processing_config.keywords === 'object') {
+      const configKeywords = row.processing_config.keywords
+      validKeywords = {
+        boost: {
+          high: configKeywords.boost?.high || [],
+          medium: configKeywords.boost?.medium || [],
+          low: configKeywords.boost?.low || []
+        },
+        filter: {
+          exclude: configKeywords.filter?.exclude || [],
+          require: configKeywords.filter?.require || []
+        }
+      }
+    } else if (Array.isArray(row.keywords) && row.keywords.length > 0) {
+      // Legacy: if keywords are just an array, treat them as medium boost keywords
+      validKeywords.boost.medium = row.keywords
+    }
+    
     return {
       id: row.id,
       name: row.name,
       description: row.description || '',
       enabled: row.enabled,
       weight: (row as any).weight || 1.0,
-      keywords: row.keywords as any,
+      keywords: validKeywords,
       sources: row.sources,
-      processing: row.processing_config as any
+      processing: {
+        generateSummary: row.processing_config?.generateSummary ?? false,
+        enhanceTags: row.processing_config?.enhanceTags ?? false,
+        scoreRelevance: row.processing_config?.scoreRelevance ?? true,
+        checkDuplicates: row.processing_config?.checkDuplicates ?? true,
+        minRelevanceScore: row.processing_config?.minRelevanceScore ?? 0.3,
+        maxAgeDays: row.processing_config?.maxAgeDays ?? 7
+      }
     }
   }
   
