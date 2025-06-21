@@ -2,7 +2,7 @@
   "crons": [
     {
       "path": "/api/aggregator/sync",
-      "schedule": "0 */30 * * * *"
+      "schedule": "*/30 * * * *"
     }
   ],
   "installCommand": "corepack enable && pnpm install",
