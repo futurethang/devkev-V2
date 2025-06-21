@@ -113,7 +113,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
       </header>
 
       <div className={styles.content}>
-        <MDXContent content={project.body} />
+        <MDXContent content={project} />
       </div>
 
       <footer className={styles.footer}>

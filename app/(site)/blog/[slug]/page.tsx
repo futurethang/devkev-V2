@@ -56,7 +56,7 @@ export default async function PostPage({ params }: PostPageProps) {
             {format(new Date(post.date), 'MMMM dd, yyyy')}
           </time>
           <div className={styles.readingTime}>
-            {Math.ceil(post.body.raw.split(' ').length / 200)} min read
+            {Math.ceil(post.content.split(' ').length / 200)} min read
           </div>
         </div>
 
@@ -73,7 +73,7 @@ export default async function PostPage({ params }: PostPageProps) {
       </header>
 
       <div className={styles.content}>
-        <MDXContent content={post.body} />
+        <MDXContent content={post} />
       </div>
 
       <footer className={styles.footer}>

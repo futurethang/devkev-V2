@@ -108,7 +108,7 @@ export default async function ExperimentPage({ params }: ExperimentPageProps) {
       </header>
 
       <div className={styles.content}>
-        <MDXContent content={experiment.body} />
+        <MDXContent content={experiment} />
       </div>
 
       <footer className={styles.footer}>
