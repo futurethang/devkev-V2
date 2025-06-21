@@ -134,7 +134,7 @@ export class GitHubParser {
         )
       } else {
         // Default to trending repositories - need to pass headers through getTrending
-        const authHeaders = config.accessToken ? { 'Authorization': `token ${config.accessToken}` } : {}
+        const authHeaders = config.accessToken ? { 'Authorization': `token ${config.accessToken}` } : undefined
         items = await this.getTrendingWithHeaders(
           config.language,
           config.since as 'daily' | 'weekly' | 'monthly' || 'daily',

@@ -284,11 +284,11 @@ export default function DigestPage() {
 
                       {item.aiSummary && typeof item.aiSummary === 'object' && (
                         <div className={styles.summary}>
-                          <p>{item.aiSummary.summary}</p>
+                          <p>{(item.aiSummary as any).summary || 'AI analysis available'}</p>
                           
-                          {item.aiSummary.keyPoints && Array.isArray(item.aiSummary.keyPoints) && item.aiSummary.keyPoints.length > 0 && (
+                          {(item.aiSummary as any).keyPoints && Array.isArray((item.aiSummary as any).keyPoints) && (item.aiSummary as any).keyPoints.length > 0 && (
                             <ul className={styles.keyPoints}>
-                              {item.aiSummary.keyPoints.slice(0, 3).map((point: string, i: number) => (
+                              {((item.aiSummary as any).keyPoints || []).slice(0, 3).map((point: string, i: number) => (
                                 <li key={i}>{point}</li>
                               ))}
                             </ul>

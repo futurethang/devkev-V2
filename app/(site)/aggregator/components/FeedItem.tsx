@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import Link from 'next/link'  
+  
 import type { FeedItem as FeedItemType, FocusProfile, SourceConfig } from '../../../../aggregator/lib/types/feed'
 import styles from './FeedItem.module.css'
 
@@ -13,6 +13,11 @@ interface FeedItemWithEngagement extends FeedItemType {
     isRead: boolean
     ctr: number
   }
+  aiProcessed?: boolean
+  summary?: string
+  insights?: string
+  aiTags?: string[]
+  description?: string
 }
 
 interface FeedItemProps {
@@ -93,8 +98,8 @@ export function FeedItem({ item, profile, source, viewMode }: FeedItemProps) {
             <span className={styles.sourceType}>({source?.type})</span>
           </div>
           <div className={styles.dateInfo}>
-            <time dateTime={item.publishedAt} className={styles.publishedDate}>
-              {formatDate(item.publishedAt)}
+            <time dateTime={item.publishedAt.toISOString()} className={styles.publishedDate}>
+              {formatDate(item.publishedAt.toISOString())}
             </time>
           </div>
         </div>
@@ -120,7 +125,7 @@ export function FeedItem({ item, profile, source, viewMode }: FeedItemProps) {
 
       <div className={styles.content}>
         <h3 className={styles.title}>
-          <Link 
+          <a 
             href={item.url}
             target="_blank" 
             rel="noopener noreferrer"
@@ -128,7 +133,7 @@ export function FeedItem({ item, profile, source, viewMode }: FeedItemProps) {
             className={styles.titleLink}
           >
             {item.title}
-          </Link>
+          </a>
         </h3>
 
         {item.description && (
@@ -137,41 +142,41 @@ export function FeedItem({ item, profile, source, viewMode }: FeedItemProps) {
           </p>
         )}
 
-        {item.summary && viewMode === 'card' && (
+        {item.aiSummary && viewMode === 'card' && (
           <div className={styles.summary}>
             <h4>AI Summary:</h4>
-            <p>{item.summary}</p>
+            <p>{typeof item.aiSummary === 'string' ? item.aiSummary : 'AI analysis available'}</p>
           </div>
         )}
 
-        {item.aiTags && item.aiTags.length > 0 && (
+        {item.tags && item.tags.length > 0 && (
           <div className={styles.tags}>
-            {item.aiTags.slice(0, viewMode === 'card' ? 5 : 3).map((tag, index) => (
+            {item.tags.slice(0, viewMode === 'card' ? 5 : 3).map((tag, index) => (
               <span key={index} className={styles.tag}>
                 {tag}
               </span>
             ))}
-            {item.aiTags.length > (viewMode === 'card' ? 5 : 3) && (
+            {item.tags.length > (viewMode === 'card' ? 5 : 3) && (
               <span className={styles.moreTagsIndicator}>
-                +{item.aiTags.length - (viewMode === 'card' ? 5 : 3)} more
+                +{item.tags.length - (viewMode === 'card' ? 5 : 3)} more
               </span>
             )}
           </div>
         )}
 
-        {item.insights && viewMode === 'card' && (
+        {item.aiSummary && viewMode === 'card' && (
           <button
             onClick={handleReadToggle}
             className={styles.insightsToggle}
           >
-            {isExpanded ? 'Hide' : 'Show'} AI Insights
+            {isExpanded ? 'Hide' : 'Show'} AI Analysis
           </button>
         )}
 
-        {isExpanded && item.insights && (
+        {isExpanded && item.aiSummary && (
           <div className={styles.insights}>
-            <h4>AI Insights:</h4>
-            <p>{item.insights}</p>
+            <h4>AI Analysis:</h4>
+            <p>{typeof item.aiSummary === 'string' ? item.aiSummary : 'AI analysis available'}</p>
           </div>
         )}
       </div>

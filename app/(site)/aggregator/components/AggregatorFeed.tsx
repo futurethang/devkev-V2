@@ -34,8 +34,8 @@ export function AggregatorFeed({ items, profiles, sources }: AggregatorFeedProps
     
     switch (sortBy) {
       case 'publishedAt':
-        aValue = new Date(a.publishedAt).getTime()
-        bValue = new Date(b.publishedAt).getTime()
+        aValue = a.publishedAt.getTime()
+        bValue = b.publishedAt.getTime()
         break
       case 'relevanceScore':
         aValue = a.relevanceScore || 0
@@ -46,8 +46,8 @@ export function AggregatorFeed({ items, profiles, sources }: AggregatorFeedProps
         bValue = b.engagement.views + b.engagement.clicks * 2 + b.engagement.reads * 3
         break
       default:
-        aValue = new Date(a.publishedAt).getTime()
-        bValue = new Date(b.publishedAt).getTime()
+        aValue = a.publishedAt.getTime()
+        bValue = b.publishedAt.getTime()
     }
     
     if (sortOrder === 'asc') {
@@ -124,8 +124,8 @@ export function AggregatorFeed({ items, profiles, sources }: AggregatorFeedProps
           <FeedItem
             key={item.id}
             item={item}
-            profile={profiles.find(p => p.id === item.profileId)}
-            source={sources.find(s => s.id === item.sourceId)}
+            profile={profiles.find(p => p.id === (item as any).profileId)}
+            source={sources.find(s => s.id === (item as any).sourceId)}
             viewMode={viewMode}
           />
         ))}

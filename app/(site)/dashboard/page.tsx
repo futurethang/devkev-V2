@@ -267,7 +267,7 @@ export default function DashboardPage() {
       {error && (
         <div className={styles.error}>
           <p>⚠️ {error}</p>
-          <button onClick={fetchAggregatorData} className={styles.retryButton}>
+          <button onClick={() => fetchAggregatorData()} className={styles.retryButton}>
             Retry
           </button>
         </div>

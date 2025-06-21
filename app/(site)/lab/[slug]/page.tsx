@@ -52,7 +52,7 @@ export default async function ExperimentPage({ params }: ExperimentPageProps) {
     <article className={styles.container}>
       <header className={styles.header}>
         <div className={styles.meta}>
-          <time dateTime={experiment.date} className={styles.date}>
+          <time dateTime={experiment.date.toISOString()} className={styles.date}>
             {format(new Date(experiment.date), 'MMMM dd, yyyy')}
           </time>
           <span className={styles.experimentBadge}>Lab Experiment</span>

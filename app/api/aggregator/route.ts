@@ -77,7 +77,7 @@ export async function GET(request: NextRequest) {
     const includeItems = searchParams.get('includeItems') === 'true'
     const forceRefresh = searchParams.get('refresh') === 'true'
     
-    const cacheKey = getCacheKey(profileId, includeItems, enableAI)
+    const cacheKey = getCacheKey(profileId || undefined, includeItems, enableAI)
     const cachedEntry = cache.get(cacheKey)
     
     // Check if we can use cached data
@@ -91,7 +91,7 @@ export async function GET(request: NextRequest) {
     }
     
     // Check request limits for fresh data
-    if (!forceRefresh && !canMakeRequest(profileId)) {
+    if (!forceRefresh && !canMakeRequest(profileId || undefined)) {
       const today = new Date().toISOString().split('T')[0]
       const key = profileId || 'all'
       const requestData = dailyRequestCounts.get(key)
@@ -121,7 +121,7 @@ export async function GET(request: NextRequest) {
     
     // Increment request count for fresh data
     if (!forceRefresh) {
-      incrementRequestCount(profileId)
+      incrementRequestCount(profileId || undefined)
     }
     
     let result
@@ -140,27 +140,50 @@ export async function GET(request: NextRequest) {
       // This is a temporary solution until we refactor the API structure
       try {
         if (enableAI) {
-          result = await aggregator.fetchFromProfileWithAI({ 
+          const profileData = { 
             id: profileId, 
             name: profileId, 
             enabled: true,
             description: '',
-            keywords: [],
+            weight: 1.0,
+            keywords: {
+              boost: { high: [], medium: [], low: [] },
+              filter: { exclude: [], require: [] }
+            },
             sources: [],
-            processing: { checkDuplicates: true, minRelevanceScore: 0.3 }
-          }, includeItems)
-          result.aiEnabled = true
+            processing: { 
+              checkDuplicates: true, 
+              minRelevanceScore: 0.3,
+              generateSummary: true,
+              enhanceTags: true,
+              scoreRelevance: true,
+              maxAgeDays: 7
+            }
+          }
+          result = await aggregator.fetchFromProfileWithAI(profileData, includeItems)
+          ;(result as any).aiEnabled = true
         } else {
           result = await aggregator.fetchFromProfile({ 
             id: profileId, 
             name: profileId, 
             enabled: true,
             description: '',
-            keywords: [],
+            weight: 1.0,
+            keywords: {
+              boost: { high: [], medium: [], low: [] },
+              filter: { exclude: [], require: [] }
+            },
             sources: [],
-            processing: { checkDuplicates: true, minRelevanceScore: 0.3 }
+            processing: { 
+              checkDuplicates: true, 
+              minRelevanceScore: 0.3,
+              generateSummary: true,
+              enhanceTags: true,
+              scoreRelevance: true,
+              maxAgeDays: 7
+            }
           }, includeItems)
-          result.aiEnabled = false
+          ;(result as any).aiEnabled = false
         }
       } catch (error) {
         if (error instanceof Error && error.message.includes('not found')) {
@@ -174,14 +197,14 @@ export async function GET(request: NextRequest) {
     } else {
       // Fetch all active profiles
       result = await aggregator.fetchFromAllActiveProfiles()
-      result.aiEnabled = enableAI
+      ;(result as any).aiEnabled = enableAI
     }
     
     // Cache the result
     cache.set(cacheKey, {
       data: result,
       timestamp: Date.now(),
-      profileId
+      profileId: profileId || undefined
     })
     
     // Add cache metadata to response
@@ -189,9 +212,9 @@ export async function GET(request: NextRequest) {
     const key = profileId || 'all'
     const requestData = dailyRequestCounts.get(key)
     
-    result.cached = false
-    result.remainingRequests = MAX_REQUESTS_PER_DAY - (requestData?.count || 0)
-    result.message = forceRefresh ? 'Force refreshed data' : 'Fresh data fetched'
+    ;(result as any).cached = false
+    ;(result as any).remainingRequests = MAX_REQUESTS_PER_DAY - (requestData?.count || 0)
+    ;(result as any).message = forceRefresh ? 'Force refreshed data' : 'Fresh data fetched'
     
     return NextResponse.json(result)
     
@@ -252,11 +275,11 @@ export async function POST(request: NextRequest) {
             }
           } else {
             result = await aggregator.fetchFromProfile(profile, true)
-            result.aiEnabled = false
+            ;(result as any).aiEnabled = false
           }
         } else {
           result = await aggregator.fetchFromAllActiveProfiles()
-          result.aiEnabled = aiEnabled
+          ;(result as any).aiEnabled = aiEnabled
         }
         
         // Update cache with fresh data
@@ -267,8 +290,8 @@ export async function POST(request: NextRequest) {
           profileId
         })
         
-        result.cached = false
-        result.message = 'Manual refresh completed - cache updated'
+        ;(result as any).cached = false
+        ;(result as any).message = 'Manual refresh completed - cache updated'
         
         return NextResponse.json({ success: true, result })
         
@@ -291,7 +314,7 @@ export async function POST(request: NextRequest) {
             testResults.push({
               sourceId,
               success: result.success,
-              itemCount: result.items?.length || 0,
+              itemCount: result.itemCount || 0,
               duration: result.duration,
               error: result.error
             })

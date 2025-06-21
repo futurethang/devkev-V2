@@ -93,7 +93,16 @@ export default async function AggregatorPage({ searchParams }: PageProps) {
       <main className={styles.main}>
         <Suspense fallback={<div className={styles.loading}>Loading feed...</div>}>
           <AggregatorFeed 
-            items={data.feedItems}
+            items={data.feedItems.map(item => ({
+              ...item,
+              engagement: {
+                views: 0,
+                clicks: 0,
+                reads: 0,
+                isRead: false,
+                ctr: 0
+              }
+            }))}
             profiles={data.profiles}
             sources={data.sources}
           />

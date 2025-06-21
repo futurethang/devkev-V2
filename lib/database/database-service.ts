@@ -59,7 +59,7 @@ export class DatabaseService {
   
   async createSource(source: Omit<SourceConfig, 'id'>): Promise<SourceConfig> {
     const sourceData = {
-      id: source.id || `${source.type}-${Date.now()}`,
+      id: `${source.type}-${Date.now()}`,
       name: source.name,
       type: source.type,
       url: source.url,
@@ -149,7 +149,7 @@ export class DatabaseService {
   
   async createProfile(profile: Omit<FocusProfile, 'id'>): Promise<FocusProfile> {
     const profileData = {
-      id: profile.id || `profile-${Date.now()}`,
+      id: `profile-${Date.now()}`,
       name: profile.name,
       description: profile.description,
       enabled: profile.enabled ?? true,
@@ -191,14 +191,15 @@ export class DatabaseService {
     
     return data?.map((row: any) => ({
       id: row.id,
-      sourceId: row.source_id,
-      profileId: row.profile_id,
+      source: (row.source_id as any) || 'rss',
+      sourceName: row.source_name,
+      sourceUrl: (row as any).source_url || '',
       title: row.title,
       description: row.description,
       content: null, // Not included in optimized query for performance
       url: row.url,
       author: row.author,
-      publishedAt: row.published_at,
+      publishedAt: new Date(row.published_at || Date.now()),
       guid: null, // Not needed for display
       tags: row.tags,
       summary: row.summary,
@@ -209,8 +210,6 @@ export class DatabaseService {
       rawData: {}, // Not needed for display
       processingStatus: row.processing_status,
       aiProcessed: row.ai_processed,
-      // Enhanced fields from view
-      sourceName: row.source_name,
       sourceType: row.source_type,
       profileName: row.profile_name,
       engagement: {
@@ -250,25 +249,25 @@ export class DatabaseService {
   
   async createFeedItem(item: Omit<FeedItem, 'id'>): Promise<FeedItem> {
     const itemData = {
-      id: item.id || `item-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      source_id: item.sourceId,
-      profile_id: item.profileId || null,
+      id: `item-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      source_id: (item as any).sourceId || item.source,
+      profile_id: (item as any).profileId || null,
       title: item.title,
-      description: item.description || null,
+      description: (item as any).description || null,
       content: item.content || null,
       url: item.url,
       author: item.author || null,
       published_at: item.publishedAt,
-      guid: item.guid || null,
+      guid: (item as any).guid || null,
       tags: item.tags || [],
-      summary: item.summary || null,
-      ai_tags: item.aiTags || [],
-      insights: item.insights || null,
+      summary: (item as any).summary || null,
+      ai_tags: (item as any).aiTags || [],
+      insights: (item as any).insights || null,
       relevance_score: item.relevanceScore || 0,
-      embedding: item.embedding || null,
-      raw_data: item.rawData || {},
-      processing_status: item.processingStatus || 'pending',
-      ai_processed: item.aiProcessed || false
+      embedding: (item as any).embedding || null,
+      raw_data: (item as any).rawData || {},
+      processing_status: (item as any).processingStatus || 'pending',
+      ai_processed: (item as any).aiProcessed || false
     }
     
     const { data, error } = await supabase
@@ -293,25 +292,25 @@ export class DatabaseService {
     if (items.length === 0) return []
     
     const itemsData = items.map(item => ({
-      id: item.id || `item-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      source_id: item.sourceId,
-      profile_id: item.profileId || null,
+      id: `item-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      source_id: (item as any).sourceId || item.source,
+      profile_id: (item as any).profileId || null,
       title: item.title,
-      description: item.description || null,
+      description: (item as any).description || null,
       content: item.content || null,
       url: item.url,
       author: item.author || null,
       published_at: item.publishedAt,
-      guid: item.guid || null,
+      guid: (item as any).guid || null,
       tags: item.tags || [],
-      summary: item.summary || null,
-      ai_tags: item.aiTags || [],
-      insights: item.insights || null,
+      summary: (item as any).summary || null,
+      ai_tags: (item as any).aiTags || [],
+      insights: (item as any).insights || null,
       relevance_score: item.relevanceScore || 0,
-      embedding: item.embedding || null,
-      raw_data: item.rawData || {},
-      processing_status: item.processingStatus || 'pending',
-      ai_processed: item.aiProcessed || false
+      embedding: (item as any).embedding || null,
+      raw_data: (item as any).rawData || {},
+      processing_status: (item as any).processingStatus || 'pending',
+      ai_processed: (item as any).aiProcessed || false
     }))
     
     const { data, error } = await supabase
@@ -341,13 +340,13 @@ export class DatabaseService {
     const { data, error } = await supabase
       .from('feed_items')
       .update({
-        summary: updates.summary,
-        ai_tags: updates.aiTags,
-        insights: updates.insights,
+        summary: (updates as any).summary,
+        ai_tags: (updates as any).aiTags,
+        insights: (updates as any).insights,
         relevance_score: updates.relevanceScore,
-        embedding: updates.embedding,
-        processing_status: updates.processingStatus,
-        ai_processed: updates.aiProcessed
+        embedding: (updates as any).embedding,
+        processing_status: (updates as any).processingStatus,
+        ai_processed: (updates as any).aiProcessed
       })
       .eq('id', id)
       .select()
@@ -507,7 +506,8 @@ export class DatabaseService {
       name: row.name,
       description: row.description || '',
       enabled: row.enabled,
-      keywords: row.keywords,
+      weight: (row as any).weight || 1.0,
+      keywords: row.keywords as any,
       sources: row.sources,
       processing: row.processing_config as any
     }
@@ -516,24 +516,26 @@ export class DatabaseService {
   private mapFeedItemRowToItem(row: FeedItemRow): FeedItem {
     return {
       id: row.id,
-      sourceId: row.source_id,
-      profileId: row.profile_id,
+      source: (row.source_id as any) || 'rss',
+      sourceName: (row as any).source_name,
+      sourceUrl: (row as any).source_url || '',
       title: row.title,
-      description: row.description,
-      content: row.content,
+      content: row.content || '',
       url: row.url,
-      author: row.author,
-      publishedAt: row.published_at,
-      guid: row.guid,
+      author: row.author || '',
+      publishedAt: new Date(row.published_at || Date.now()),
       tags: row.tags,
-      summary: row.summary,
-      aiTags: row.ai_tags,
-      insights: row.insights,
       relevanceScore: row.relevance_score,
-      embedding: row.embedding,
-      rawData: row.raw_data,
-      processingStatus: row.processing_status,
-      aiProcessed: row.ai_processed
+      aiSummary: row.summary,
+      metadata: {
+        guid: row.guid,
+        insights: row.insights,
+        aiTags: row.ai_tags,
+        embedding: row.embedding,
+        rawData: row.raw_data,
+        processingStatus: row.processing_status,
+        aiProcessed: row.ai_processed
+      }
     }
   }
 }

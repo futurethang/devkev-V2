@@ -52,7 +52,7 @@ export default async function PostPage({ params }: PostPageProps) {
     <article className={styles.container}>
       <header className={styles.header}>
         <div className={styles.meta}>
-          <time dateTime={post.date} className={styles.date}>
+          <time dateTime={post.date.toISOString()} className={styles.date}>
             {format(new Date(post.date), 'MMMM dd, yyyy')}
           </time>
           <div className={styles.readingTime}>

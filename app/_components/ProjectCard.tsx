@@ -14,7 +14,7 @@ export function ProjectCard({ project, featured = false }: ProjectCardProps) {
       <Link href={project.url as any} className={styles.link}>
         <div className={styles.header}>
           <div className={styles.meta}>
-            <time dateTime={project.date} className={styles.date}>
+            <time dateTime={project.date.toISOString()} className={styles.date}>
               {format(new Date(project.date), 'MMM dd, yyyy')}
             </time>
             {project.aiAssisted && (

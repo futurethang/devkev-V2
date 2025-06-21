@@ -212,7 +212,8 @@ export default function TestSuitePage() {
           name: testName,
           status: 'pass',
           duration,
-          details: { expectedError: 'received', status: response.status }
+          details: { expectedError: 'received', status: response.status },
+          apiType: 'internal'
         }
       }
 
@@ -250,7 +251,10 @@ export default function TestSuitePage() {
         // Check AI provider status from the response
         const firstItem = result.processedFeedItems[0]
         if (firstItem?.processingMetadata?.provider) {
-          aiProvider = firstItem.processingMetadata.provider as typeof aiProvider
+          const providerValue = firstItem.processingMetadata.provider
+          if (providerValue === 'mock' || providerValue === 'anthropic' || providerValue === 'openai') {
+            aiProvider = providerValue
+          }
           
           if (aiProvider === 'mock') {
             aiProviderWarning = 'Using MOCK AI provider - summaries are generic, not content-specific. Add ANTHROPIC_API_KEY to .env.local for real AI processing.'

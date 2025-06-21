@@ -52,7 +52,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
     <article className={styles.container}>
       <header className={styles.header}>
         <div className={styles.meta}>
-          <time dateTime={project.date} className={styles.date}>
+          <time dateTime={project.date.toISOString()} className={styles.date}>
             {format(new Date(project.date), 'MMMM dd, yyyy')}
           </time>
           <div className={styles.badges}>
