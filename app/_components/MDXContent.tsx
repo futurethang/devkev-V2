@@ -1,3 +1,5 @@
+'use client'
+
 import styles from './MDXContent.module.css'
 
 interface MDXContentProps {
