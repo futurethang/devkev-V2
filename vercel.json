@@ -4,7 +4,5 @@
       "path": "/api/aggregator/sync",
       "schedule": "0 12 * * *"
     }
-  ],
-  "installCommand": "npm install -g pnpm@9.1.2 && pnpm install",
-  "buildCommand": "pnpm build"
+  ]
 }
