@@ -25,7 +25,7 @@ This is Kevin Hyde's personal portfolio website, designed to showcase his expert
 - **Package Manager:** pnpm (ALWAYS use pnpm, never npm or yarn)
 - **Styling:** CSS Modules + CSS Variables (theme agnostic, no Tailwind utilities)
 - **Content:** MDX with Contentlayer for type-safe markdown
-- **Database:** SQLite via Turso (for analytics/metrics)
+- **Database:** Supabase (PostgreSQL with vector embeddings)
 - **Media CDN:** Cloudflare R2 + Images
 - **Deployment:** Vercel
 - **Analytics:** Posthog
@@ -271,7 +271,7 @@ pnpm update             # Update dependencies
 2. **CSS Modules over Tailwind utilities:** True theme agnosticism, semantic HTML
 3. **pnpm over npm:** Faster, more efficient, better monorepo support
 4. **Cloudflare R2:** Cost-effective media storage with global CDN
-5. **SQLite:** Simple analytics without external dependencies
+5. **Supabase:** Full-featured PostgreSQL with real-time capabilities and vector support
 6. **Vercel:** Optimal Next.js hosting with preview deployments
 
 ## Theme System

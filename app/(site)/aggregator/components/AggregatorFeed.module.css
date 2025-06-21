@@ -1,0 +1,184 @@
+.feedContainer {
+  width: 100%;
+}
+
+.feedHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-6);
+  padding: var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-base);
+}
+
+.sortControls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.sortLabel {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  font-weight: 500;
+  margin-right: var(--space-2);
+}
+
+.sortButton {
+  padding: var(--space-2) var(--space-3);
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.sortButton:hover {
+  background: var(--color-surface);
+  color: var(--color-text);
+  border-color: var(--color-primary);
+}
+
+.sortButton.active {
+  background: var(--color-primary);
+  color: white;
+  border-color: var(--color-primary);
+}
+
+.viewControls {
+  display: flex;
+  gap: var(--space-1);
+}
+
+.viewButton {
+  padding: var(--space-2);
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-muted);
+  font-size: var(--text-lg);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.viewButton:hover {
+  background: var(--color-surface);
+  color: var(--color-text);
+  border-color: var(--color-primary);
+}
+
+.viewButton.active {
+  background: var(--color-primary);
+  color: white;
+  border-color: var(--color-primary);
+}
+
+.feedGrid {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.feedGrid.card {
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+}
+
+.feedGrid.list {
+  grid-template-columns: 1fr;
+  gap: var(--space-2);
+}
+
+.emptyState {
+  text-align: center;
+  padding: var(--space-12) var(--space-4);
+  color: var(--color-text-muted);
+}
+
+.emptyIcon {
+  font-size: 4rem;
+  margin-bottom: var(--space-4);
+}
+
+.emptyState h3 {
+  font-size: var(--text-xl);
+  color: var(--color-text);
+  margin-bottom: var(--space-2);
+}
+
+.emptyState p {
+  font-size: var(--text-base);
+  line-height: 1.6;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .feedHeader {
+    flex-direction: column;
+    gap: var(--space-3);
+    align-items: stretch;
+  }
+  
+  .sortControls {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  
+  .viewControls {
+    justify-content: center;
+  }
+  
+  .feedGrid.card {
+    grid-template-columns: 1fr;
+  }
+  
+  .sortLabel {
+    margin-right: 0;
+    margin-bottom: var(--space-1);
+    width: 100%;
+    text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .feedHeader {
+    padding: var(--space-3);
+  }
+  
+  .sortButton {
+    padding: var(--space-1) var(--space-2);
+    font-size: var(--text-xs);
+  }
+  
+  .viewButton {
+    width: 32px;
+    height: 32px;
+    font-size: var(--text-base);
+  }
+}
+
+/* Dark theme support */
+[data-theme="dark"] .feedHeader {
+  background: var(--color-surface-dark);
+  border-color: var(--color-border-dark);
+}
+
+[data-theme="dark"] .sortButton,
+[data-theme="dark"] .viewButton {
+  border-color: var(--color-border-dark);
+  color: var(--color-text-muted-dark);
+}
+
+[data-theme="dark"] .sortButton:hover,
+[data-theme="dark"] .viewButton:hover {
+  background: var(--color-surface-dark);
+  color: var(--color-text-light);
+  border-color: var(--color-primary-light);
+}

@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { ConfigLoader } from '../../../../aggregator/lib/config/config-loader'
-import path from 'path'
+import { DatabaseConfigLoader } from '../../../../aggregator/lib/config/database-config-loader'
 
-const configPath = path.join(process.cwd(), 'aggregator', 'config')
-const configLoader = new ConfigLoader(configPath)
+const configLoader = new DatabaseConfigLoader()
 
 export async function GET(request: NextRequest) {
   try {
@@ -59,7 +57,7 @@ export async function GET(request: NextRequest) {
               total: allProfiles.length,
               active: activeProfiles.length
             },
-            configDir: configPath,
+            configDir: 'supabase',
             isReady: true
           }
         })

@@ -1,10 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { Aggregator } from '../../../aggregator/lib/aggregator'
-import path from 'path'
+import { DatabaseAggregator } from '../../../aggregator/lib/database-aggregator'
 
-// Initialize aggregator with AI enabled
-const aggregatorPath = path.join(process.cwd(), 'aggregator', 'config')
-const aggregator = new Aggregator(aggregatorPath, true)
+// Initialize database aggregator with AI enabled
+const aggregator = new DatabaseAggregator(true)
+
+// Initialize aggregator on first load
+let initialized = false
+async function ensureInitialized() {
+  if (!initialized) {
+    try {
+      await aggregator.initialize()
+      initialized = true
+      console.log('Database aggregator initialized successfully')
+    } catch (error) {
+      console.error('Failed to initialize database aggregator:', error)
+      throw error
+    }
+  }
+}
 
 // Cache system for request limiting
 interface CacheEntry {
@@ -56,6 +69,8 @@ function incrementRequestCount(profileId?: string): void {
 
 export async function GET(request: NextRequest) {
   try {
+    // Ensure aggregator is initialized
+    await ensureInitialized()
     const { searchParams } = new URL(request.url)
     const profileId = searchParams.get('profile')
     const enableAI = searchParams.get('ai') === 'true'
@@ -109,46 +124,52 @@ export async function GET(request: NextRequest) {
       incrementRequestCount(profileId)
     }
     
-    // Initialize AI if requested
-    if (enableAI) {
-      const contentProcessor = aggregator['contentProcessor']
-      await contentProcessor.initializeAISync()
-    }
-    
     let result
     
     if (profileId) {
-      // Fetch specific profile
-      const profiles = await aggregator['configLoader'].getActiveProfiles()
-      const profile = profiles.find(p => p.id === profileId)
-      
-      if (!profile) {
+      // Get the database service to find the profile
+      const status = await aggregator.getStatus()
+      if (!status.databaseConnected) {
         return NextResponse.json(
-          { error: `Profile '${profileId}' not found` },
-          { status: 404 }
+          { error: 'Database connection failed' },
+          { status: 503 }
         )
       }
       
-      if (enableAI) {
-        // Use AI-enhanced processing
-        const regularResult = await aggregator.fetchFromProfile(profile, includeItems)
-        const contentProcessor = aggregator['contentProcessor']
-        
-        let enhancedItems: any[] = []
-        if (regularResult.processedFeedItems && regularResult.processedFeedItems.length > 0) {
-          enhancedItems = await contentProcessor.processBatchWithAI(regularResult.processedFeedItems, profile)
+      // For now, we'll need to get the profile through the aggregator's config loader
+      // This is a temporary solution until we refactor the API structure
+      try {
+        if (enableAI) {
+          result = await aggregator.fetchFromProfileWithAI({ 
+            id: profileId, 
+            name: profileId, 
+            enabled: true,
+            description: '',
+            keywords: [],
+            sources: [],
+            processing: { checkDuplicates: true, minRelevanceScore: 0.3 }
+          }, includeItems)
+          result.aiEnabled = true
+        } else {
+          result = await aggregator.fetchFromProfile({ 
+            id: profileId, 
+            name: profileId, 
+            enabled: true,
+            description: '',
+            keywords: [],
+            sources: [],
+            processing: { checkDuplicates: true, minRelevanceScore: 0.3 }
+          }, includeItems)
+          result.aiEnabled = false
         }
-        
-        result = {
-          ...regularResult,
-          processedItems: enhancedItems.length,
-          processedFeedItems: includeItems ? enhancedItems : undefined,
-          aiStats: contentProcessor.getAIStats(),
-          aiEnabled: true
+      } catch (error) {
+        if (error instanceof Error && error.message.includes('not found')) {
+          return NextResponse.json(
+            { error: `Profile '${profileId}' not found` },
+            { status: 404 }
+          )
         }
-      } else {
-        result = await aggregator.fetchFromProfile(profile, includeItems)
-        result.aiEnabled = false
+        throw error
       }
     } else {
       // Fetch all active profiles
