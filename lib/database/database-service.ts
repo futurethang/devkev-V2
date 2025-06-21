@@ -501,15 +501,36 @@ export class DatabaseService {
   }
   
   private mapProfileRowToConfig(row: ProfileRow): FocusProfile {
+    // Ensure keywords have the proper structure
+    const keywords = row.keywords || {}
+    const validKeywords = {
+      boost: {
+        high: keywords.boost?.high || [],
+        medium: keywords.boost?.medium || [],
+        low: keywords.boost?.low || []
+      },
+      filter: {
+        exclude: keywords.filter?.exclude || [],
+        require: keywords.filter?.require || []
+      }
+    }
+    
     return {
       id: row.id,
       name: row.name,
       description: row.description || '',
       enabled: row.enabled,
       weight: (row as any).weight || 1.0,
-      keywords: row.keywords as any,
+      keywords: validKeywords,
       sources: row.sources,
-      processing: row.processing_config as any
+      processing: {
+        generateSummary: row.processing_config?.generateSummary ?? false,
+        enhanceTags: row.processing_config?.enhanceTags ?? false,
+        scoreRelevance: row.processing_config?.scoreRelevance ?? true,
+        checkDuplicates: row.processing_config?.checkDuplicates ?? true,
+        minRelevanceScore: row.processing_config?.minRelevanceScore ?? 0.3,
+        maxAgeDays: row.processing_config?.maxAgeDays ?? 7
+      }
     }
   }
   
