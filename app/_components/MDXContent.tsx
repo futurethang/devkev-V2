@@ -1,5 +1,6 @@
-'use client'
-
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
+import rehypeHighlight from 'rehype-highlight'
 import styles from './MDXContent.module.css'
 
 interface MDXContentProps {
@@ -7,22 +8,22 @@ interface MDXContentProps {
 }
 
 export function MDXContent({ content }: MDXContentProps) {
-  // Content Collections compiles MDX to a React component
-  const Component = content.mdx
-  
+  // Fallback to ReactMarkdown since Content Collections MDX compilation is not working as expected
   return (
     <div className={styles.content}>
-      <Component 
+      <ReactMarkdown
+        remarkPlugins={[remarkGfm]}
+        rehypePlugins={[rehypeHighlight]}
         components={{
-          h1: (props: any) => <h1 className={styles.h1} {...props} />,
-          h2: (props: any) => <h2 className={styles.h2} {...props} />,
-          h3: (props: any) => <h3 className={styles.h3} {...props} />,
-          h4: (props: any) => <h4 className={styles.h4} {...props} />,
-          p: (props: any) => <p className={styles.paragraph} {...props} />,
-          ul: (props: any) => <ul className={styles.unorderedList} {...props} />,
-          ol: (props: any) => <ol className={styles.orderedList} {...props} />,
-          li: (props: any) => <li className={styles.listItem} {...props} />,
-          a: ({ href, ...props }: any) => (
+          h1: ({ node, ...props }: any) => <h1 className={styles.h1} {...props} />,
+          h2: ({ node, ...props }: any) => <h2 className={styles.h2} {...props} />,
+          h3: ({ node, ...props }: any) => <h3 className={styles.h3} {...props} />,
+          h4: ({ node, ...props }: any) => <h4 className={styles.h4} {...props} />,
+          p: ({ node, ...props }: any) => <p className={styles.paragraph} {...props} />,
+          ul: ({ node, ...props }: any) => <ul className={styles.unorderedList} {...props} />,
+          ol: ({ node, ...props }: any) => <ol className={styles.orderedList} {...props} />,
+          li: ({ node, ...props }: any) => <li className={styles.listItem} {...props} />,
+          a: ({ node, href, ...props }: any) => (
             <a 
               className={styles.link}
               href={href}
@@ -31,17 +32,19 @@ export function MDXContent({ content }: MDXContentProps) {
               {...props}
             />
           ),
-          code: ({ inline, ...props }: any) => (
+          code: ({ node, inline, ...props }: any) => (
             inline 
               ? <code className={styles.inlineCode} {...props} />
               : <code className={styles.codeBlock} {...props} />
           ),
-          pre: (props: any) => <pre className={styles.preBlock} {...props} />,
-          blockquote: (props: any) => <blockquote className={styles.blockquote} {...props} />,
-          strong: (props: any) => <strong className={styles.strong} {...props} />,
-          em: (props: any) => <em className={styles.emphasis} {...props} />,
+          pre: ({ node, ...props }: any) => <pre className={styles.preBlock} {...props} />,
+          blockquote: ({ node, ...props }: any) => <blockquote className={styles.blockquote} {...props} />,
+          strong: ({ node, ...props }: any) => <strong className={styles.strong} {...props} />,
+          em: ({ node, ...props }: any) => <em className={styles.emphasis} {...props} />,
         }}
-      />
+      >
+        {content.content}
+      </ReactMarkdown>
     </div>
   )
 }

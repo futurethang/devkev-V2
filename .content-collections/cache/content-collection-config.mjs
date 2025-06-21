@@ -1,6 +1,5 @@
 // content-collections.ts
 import { defineCollection, defineConfig } from "@content-collections/core";
-import { compileMDX } from "@content-collections/mdx";
 import { z } from "zod";
 var projects = defineCollection({
   name: "projects",
@@ -20,10 +19,8 @@ var projects = defineCollection({
     mock: z.boolean().optional().default(false)
   }),
   transform: async (document, context) => {
-    const mdx = await compileMDX(context, document);
     return {
       ...document,
-      mdx,
       url: `/projects/${document._meta.path}`,
       slug: document._meta.path,
       _id: document._meta.filePath,
@@ -51,10 +48,8 @@ var posts = defineCollection({
     mock: z.boolean().optional().default(false)
   }),
   transform: async (document, context) => {
-    const mdx = await compileMDX(context, document);
     return {
       ...document,
-      mdx,
       url: `/blog/${document._meta.path}`,
       slug: document._meta.path,
       _id: document._meta.filePath,
@@ -83,10 +78,8 @@ var experiments = defineCollection({
     mock: z.boolean().optional().default(false)
   }),
   transform: async (document, context) => {
-    const mdx = await compileMDX(context, document);
     return {
       ...document,
-      mdx,
       url: `/lab/${document._meta.path}`,
       slug: document._meta.path,
       _id: document._meta.filePath,
