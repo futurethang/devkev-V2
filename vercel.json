@@ -6,10 +6,5 @@
     }
   ],
   "installCommand": "corepack enable && corepack prepare pnpm@9.1.2 --activate && pnpm install",
-  "buildCommand": "pnpm build",
-  "functions": {
-    "api/**/*.ts": {
-      "runtime": "nodejs22.x"
-    }
-  }
+  "buildCommand": "pnpm build"
 }
