@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { format } from 'date-fns'
-import type { Experiment } from 'contentlayer/generated'
+import type { Experiment } from 'content-collections'
 import styles from './ExperimentCard.module.css'
 
 interface ExperimentCardProps {

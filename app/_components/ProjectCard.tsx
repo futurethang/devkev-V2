@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { format } from 'date-fns'
-import type { Project } from 'contentlayer/generated'
+import type { Project } from 'content-collections'
 import styles from './ProjectCard.module.css'
 
 interface ProjectCardProps {

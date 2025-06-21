@@ -139,7 +139,6 @@ export class DatabaseConfigLoader {
         // Create default sources
         const defaultSources: Omit<SourceConfig, 'id'>[] = [
           {
-            id: 'vercel-blog',
             name: 'Vercel Blog',
             type: 'rss',
             url: 'https://vercel.com/blog/rss.xml',
@@ -148,7 +147,6 @@ export class DatabaseConfigLoader {
             weight: 1.0
           },
           {
-            id: 'github-trending-typescript',
             name: 'GitHub Trending TypeScript',
             type: 'github',
             url: 'https://api.github.com/search/repositories?q=language:typescript&sort=stars&order=desc',
@@ -157,7 +155,6 @@ export class DatabaseConfigLoader {
             weight: 0.8
           },
           {
-            id: 'hackernews-ai',
             name: 'HackerNews AI Stories',
             type: 'hn',
             url: 'https://hacker-news.firebaseio.com/v0/topstories.json',
@@ -170,31 +167,55 @@ export class DatabaseConfigLoader {
         // Create default profiles
         const defaultProfiles: Omit<FocusProfile, 'id'>[] = [
           {
-            id: 'ai-product',
             name: 'AI Product Builder',
             description: 'Focus on AI products, tools, and product development',
             enabled: true,
-            keywords: ['ai', 'machine learning', 'product', 'startup', 'tools'],
+            weight: 1.0,
+            keywords: {
+              boost: {
+                high: ['ai', 'machine learning', 'product'],
+                medium: ['startup', 'tools', 'automation'],
+                low: ['technology', 'development']
+              },
+              filter: {
+                exclude: ['spam', 'advertisement'],
+                require: []
+              }
+            },
             sources: ['vercel-blog', 'github-trending-typescript', 'hackernews-ai'],
             processing: {
+              generateSummary: true,
+              enhanceTags: true,
+              scoreRelevance: true,
               checkDuplicates: true,
               minRelevanceScore: 0.3,
-              maxItemsPerSource: 10,
-              aiEnhancement: true
+              maxAgeDays: 7
             }
           },
           {
-            id: 'ml-engineering',
             name: 'ML Engineering',
             description: 'Machine learning engineering and infrastructure',
             enabled: true,
-            keywords: ['ml', 'pytorch', 'tensorflow', 'mlops', 'data'],
+            weight: 0.8,
+            keywords: {
+              boost: {
+                high: ['ml', 'pytorch', 'tensorflow', 'mlops'],
+                medium: ['data', 'neural networks', 'deep learning'],
+                low: ['python', 'jupyter', 'models']
+              },
+              filter: {
+                exclude: ['spam', 'advertisement'],
+                require: []
+              }
+            },
             sources: ['github-trending-typescript', 'hackernews-ai'],
             processing: {
+              generateSummary: true,
+              enhanceTags: true,
+              scoreRelevance: true,
               checkDuplicates: true,
               minRelevanceScore: 0.4,
-              maxItemsPerSource: 8,
-              aiEnhancement: true
+              maxAgeDays: 7
             }
           }
         ]

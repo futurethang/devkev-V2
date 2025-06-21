@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { format } from 'date-fns'
-import type { Post } from 'contentlayer/generated'
+import type { Post } from 'content-collections'
 import styles from './PostCard.module.css'
 
 interface PostCardProps {

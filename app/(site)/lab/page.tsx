@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useCallback } from 'react'
 import Fuse from 'fuse.js'
-import { allExperiments } from 'contentlayer/generated'
+import { allExperiments } from 'content-collections'
 import { ExperimentCard } from '@/app/_components/ExperimentCard'
 import { SearchAndFilter } from '@/app/_components/SearchAndFilter'
 import { filterMockContent } from '@/lib/content-utils'

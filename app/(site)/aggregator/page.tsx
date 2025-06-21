@@ -10,11 +10,11 @@ import styles from './page.module.css'
 // Data is fetched directly from database, not through API routes
 
 interface PageProps {
-  searchParams: {
+  searchParams: Promise<{
     profile?: string
     source?: string
     limit?: string
-  }
+  }>
 }
 
 async function getAggregatorData(profileId?: string, sourceId?: string, limit: number = 50) {
@@ -54,9 +54,10 @@ async function getAggregatorData(profileId?: string, sourceId?: string, limit: n
 }
 
 export default async function AggregatorPage({ searchParams }: PageProps) {
-  const profileId = searchParams.profile
-  const sourceId = searchParams.source
-  const limit = parseInt(searchParams.limit || '50', 10)
+  const resolvedSearchParams = await searchParams
+  const profileId = resolvedSearchParams.profile
+  const sourceId = resolvedSearchParams.source
+  const limit = parseInt(resolvedSearchParams.limit || '50', 10)
   
   // Pre-load data server-side for instant UI
   const data = await getAggregatorData(profileId, sourceId, limit)

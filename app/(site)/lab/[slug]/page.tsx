@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { format } from 'date-fns'
-import { allExperiments } from 'contentlayer/generated'
+import { allExperiments } from 'content-collections'
 import { MDXContent } from '@/app/_components/MDXContent'
 import styles from './page.module.css'
 

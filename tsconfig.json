@@ -25,20 +25,24 @@
       "@/*": [
         "./*"
       ],
-      "contentlayer/generated": [
-        "./.contentlayer/generated"
+      "content-collections": [
+        "./.content-collections/generated"
       ]
     },
     "target": "ES2017"
   },
   "include": [
     "next-env.d.ts",
-    "**/*.ts",
-    "**/*.tsx",
+    "app/**/*.ts",
+    "app/**/*.tsx",
+    "lib/**/*.ts",
+    "lib/**/*.tsx",
+    "content-collections.ts",
     ".next/types/**/*.ts",
-    ".contentlayer/generated"
+    ".content-collections/generated"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "aggregator"
   ]
 }

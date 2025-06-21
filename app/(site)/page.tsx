@@ -1,6 +1,6 @@
 import styles from './page.module.css'
 import { AggregatorWidget } from '../_components/AggregatorWidget'
-import { allProjects, allPosts, allExperiments } from 'contentlayer/generated'
+import { allProjects, allPosts, allExperiments } from 'content-collections'
 import { filterMockContent } from '@/lib/content-utils'
 import { ProjectCard } from '@/app/_components/ProjectCard'
 import { PostCard } from '@/app/_components/PostCard'
