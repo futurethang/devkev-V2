@@ -13,7 +13,7 @@ export function ExperimentCard({ experiment }: ExperimentCardProps) {
       <Link href={experiment.url as any} className={styles.link}>
         <header className={styles.header}>
           <div className={styles.meta}>
-            <time dateTime={experiment.date} className={styles.date}>
+            <time dateTime={experiment.date.toISOString()} className={styles.date}>
               {format(new Date(experiment.date), 'MMM dd')}
             </time>
             <span className={styles.experimentBadge}>Experiment</span>

@@ -12,7 +12,7 @@ export function PostCard({ post }: PostCardProps) {
     <article className={styles.card}>
       <Link href={post.url as any} className={styles.link}>
         <header className={styles.header}>
-          <time dateTime={post.date} className={styles.date}>
+          <time dateTime={post.date.toISOString()} className={styles.date}>
             {format(new Date(post.date), 'MMMM dd, yyyy')}
           </time>
           <h2 className={styles.title}>{post.title}</h2>

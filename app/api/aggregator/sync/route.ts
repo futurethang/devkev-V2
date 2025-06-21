@@ -126,8 +126,8 @@ export async function POST(request: NextRequest) {
           profileId,
           backgroundSync: true,
           duration,
-          totalItems: 'totalItems' in result ? result.totalItems : result.processedItems,
-          processedItems: 'processedItems' in result ? result.processedItems : result.processedItems,
+          totalItems: 'totalItems' in result ? result.totalItems : (result as any).processedItems || 0,
+          processedItems: 'processedItems' in result ? result.processedItems : (result as any).processedItems || 0,
           aiEnabled: includeAI
         }
       })
@@ -141,8 +141,8 @@ export async function POST(request: NextRequest) {
       success: true,
       operation,
       result: {
-        totalItems: 'totalItems' in result ? result.totalItems : result.processedItems,
-        processedItems: 'processedItems' in result ? result.processedItems : result.processedItems,
+        totalItems: 'totalItems' in result ? result.totalItems : (result as any).processedItems || 0,
+        processedItems: 'processedItems' in result ? result.processedItems : (result as any).processedItems || 0,
         duration,
         profileId: profileId || 'all'
       },

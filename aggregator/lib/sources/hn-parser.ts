@@ -108,7 +108,7 @@ export class HackerNewsParser {
    */
   async fetchFromSource(source: SourceConfig): Promise<FeedItem[]> {
     const config = source.config || {}
-    const count = config.count || 10
+    const count = (config as any).count || 10
     const query = config.query
     
     let items: FeedItem[]
