@@ -28,7 +28,7 @@ interface CacheEntry {
 
 const cache = new Map<string, CacheEntry>()
 const CACHE_DURATION = 12 * 60 * 60 * 1000 // 12 hours in milliseconds
-const MAX_REQUESTS_PER_DAY = process.env.NODE_ENV === 'development' ? 10 : 2
+const MAX_REQUESTS_PER_DAY = process.env.NODE_ENV === 'development' ? 100 : 10
 
 // Track daily request counts per profile
 const dailyRequestCounts = new Map<string, { date: string; count: number }>()

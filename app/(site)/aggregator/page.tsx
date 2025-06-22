@@ -22,8 +22,8 @@ async function getAggregatorData(profileId?: string, sourceId?: string, limit: n
   const configLoader = new DatabaseConfigLoader()
   
   try {
-    // Use optimized parallel queries for maximum performance
-    const [feedItems, stats, profiles, sources] = await Promise.all([
+    // Use parallel queries with individual error handling
+    const [feedItemsResult, statsResult, profilesResult, sourcesResult] = await Promise.allSettled([
       // Get enriched feed items with engagement data (single optimized query)
       dbService.getFeedItems({
         profileId,
@@ -39,17 +39,57 @@ async function getAggregatorData(profileId?: string, sourceId?: string, limit: n
       configLoader.loadSources()
     ])
     
+    // Extract results or use defaults
+    const feedItems = feedItemsResult.status === 'fulfilled' ? feedItemsResult.value : []
+    const stats = statsResult.status === 'fulfilled' ? statsResult.value : {
+      totalItems: 0,
+      processedItems: 0,
+      aiProcessedItems: 0,
+      avgRelevanceScore: 0,
+      lastUpdated: new Date()
+    }
+    const profiles = profilesResult.status === 'fulfilled' ? profilesResult.value : []
+    const sources = sourcesResult.status === 'fulfilled' ? sourcesResult.value.filter(s => s.enabled) : []
+    
+    // Log any errors but continue with available data
+    if (feedItemsResult.status === 'rejected') {
+      console.warn('Failed to load feed items:', feedItemsResult.reason)
+    }
+    if (statsResult.status === 'rejected') {
+      console.warn('Failed to load stats:', statsResult.reason)
+    }
+    if (profilesResult.status === 'rejected') {
+      console.warn('Failed to load profiles:', profilesResult.reason)
+    }
+    if (sourcesResult.status === 'rejected') {
+      console.warn('Failed to load sources:', sourcesResult.reason)
+    }
+    
     return {
       feedItems,
       profiles,
-      sources: sources.filter(s => s.enabled),
+      sources,
       stats,
       currentProfile: profileId ? profiles.find(p => p.id === profileId) : null,
       currentSource: sourceId ? sources.find(s => s.id === sourceId) : null
     }
   } catch (error) {
     console.error('Failed to load aggregator data:', error)
-    throw error
+    // Return empty state instead of throwing
+    return {
+      feedItems: [],
+      profiles: [],
+      sources: [],
+      stats: {
+        totalItems: 0,
+        processedItems: 0,
+        aiProcessedItems: 0,
+        avgRelevanceScore: 0,
+        lastUpdated: new Date()
+      },
+      currentProfile: null,
+      currentSource: null
+    }
   }
 }
 
