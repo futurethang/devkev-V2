@@ -177,7 +177,7 @@ export async function GET(request: NextRequest) {
               aiSummary: (item as any).summary,
               aiTags: (item as any).aiTags || [],
               isRead: false, // Will be updated by the client-side hook
-              engagementData: item.engagement
+              engagementData: (item as any).engagement
             })),
             avgRelevanceScore: feedItems.reduce((sum, item) => sum + (item.relevanceScore || 0), 0) / feedItems.length || 0,
             successfulFetches: 1,
