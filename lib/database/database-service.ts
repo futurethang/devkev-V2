@@ -253,7 +253,8 @@ export class DatabaseService {
     
     return data?.map((row: any) => ({
       id: row.id,
-      source: row.source_id || 'rss',
+      source: row.sources?.type || 'rss',
+      sourceId: row.source_id,
       sourceName: row.sources?.name || '',
       sourceUrl: row.sources?.url || '',
       title: row.title,

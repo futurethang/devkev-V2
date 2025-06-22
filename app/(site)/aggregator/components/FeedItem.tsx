@@ -92,10 +92,10 @@ export function FeedItem({ item, profile, source, viewMode }: FeedItemProps) {
       <div className={styles.header}>
         <div className={styles.metadata}>
           <div className={styles.sourceInfo}>
-            <span className={styles.sourceName} title={source?.name}>
-              {source?.name || 'Unknown Source'}
+            <span className={styles.sourceName} title={source?.name || item.sourceName}>
+              {source?.name || item.sourceName || 'Unknown Source'}
             </span>
-            <span className={styles.sourceType}>({source?.type})</span>
+            <span className={styles.sourceType}>({source?.type || item.source})</span>
           </div>
           <div className={styles.dateInfo}>
             <time dateTime={item.publishedAt.toISOString()} className={styles.publishedDate}>
