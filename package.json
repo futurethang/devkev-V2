@@ -18,7 +18,8 @@
     "aggregator:view": "tsx aggregator/view-results.ts",
     "research:intervals": "tsx aggregator/research-intervals.ts",
     "test:e2e": "tsx aggregator/test-e2e.ts",
-    "test:e2e:verbose": "tsx aggregator/test-e2e.ts --verbose"
+    "test:e2e:verbose": "tsx aggregator/test-e2e.ts --verbose",
+    "seed:sample": "tsx scripts/seed-sample-data.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.54.0",

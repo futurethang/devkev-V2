@@ -32,9 +32,11 @@ export class DatabaseService {
   }
   
   async getActiveSources(): Promise<SourceConfig[]> {
+    // Use the base table with enabled filter instead of view
     const { data, error } = await supabase
-      .from('v_active_sources')
+      .from('sources')
       .select('*')
+      .eq('enabled', true)
       .order('name')
     
     if (error) throw new Error(`Failed to fetch active sources: ${error.message}`)
@@ -122,9 +124,11 @@ export class DatabaseService {
   }
   
   async getActiveProfiles(): Promise<FocusProfile[]> {
+    // Use the base table with enabled filter instead of view
     const { data, error } = await supabase
-      .from('v_active_profiles')
+      .from('focus_profiles')
       .select('*')
+      .eq('enabled', true)
       .order('name')
     
     if (error) throw new Error(`Failed to fetch active profiles: ${error.message}`)
@@ -185,51 +189,108 @@ export class DatabaseService {
     offset?: number
     processedOnly?: boolean
   } = {}): Promise<FeedItem[]> {
-    // Use optimized function for better performance
-    const { data, error } = await supabase
-      .rpc('get_aggregator_page_data', {
-        p_profile_id: options.profileId || null,
-        p_source_id: options.sourceId || null,
-        p_limit: options.limit || 50,
-        p_offset: options.offset || 0
-      })
+    // Build query without RPC function
+    let query = supabase
+      .from('feed_items')
+      .select(`
+        *,
+        sources!inner (
+          id,
+          name,
+          type,
+          url
+        ),
+        focus_profiles (
+          id,
+          name
+        )
+      `)
+      .order('published_at', { ascending: false })
+      .limit(options.limit || 50)
+    
+    if (options.offset) {
+      query = query.range(options.offset, options.offset + (options.limit || 50) - 1)
+    }
+    
+    if (options.profileId) {
+      query = query.eq('profile_id', options.profileId)
+    }
+    
+    if (options.sourceId) {
+      query = query.eq('source_id', options.sourceId)
+    }
+    
+    if (options.processedOnly) {
+      query = query.eq('processing_status', 'processed')
+    }
+    
+    const { data, error } = await query
     
     if (error) throw new Error(`Failed to fetch feed items: ${error.message}`)
     
+    // Get engagement data separately (handle missing materialized view)
+    const itemIds = data?.map(item => item.id) || []
+    let engagementData: Record<string, any> = {}
+    
+    if (itemIds.length > 0) {
+      try {
+        const { data: engagementRows } = await supabase
+          .from('mv_engagement_summary')
+          .select('*')
+          .in('item_id', itemIds)
+        
+        if (engagementRows) {
+          engagementData = engagementRows.reduce((acc, row) => {
+            acc[row.item_id] = row
+            return acc
+          }, {} as Record<string, any>)
+        }
+      } catch (err) {
+        // Materialized view might not exist, continue without engagement data
+        console.warn('Could not fetch engagement data:', err)
+      }
+    }
+    
     return data?.map((row: any) => ({
       id: row.id,
-      source: (row.source_id as any) || 'rss',
-      sourceName: row.source_name,
-      sourceUrl: (row as any).source_url || '',
+      source: row.source_id || 'rss',
+      sourceName: row.sources?.name || '',
+      sourceUrl: row.sources?.url || '',
       title: row.title,
       description: row.description,
-      content: null, // Not included in optimized query for performance
+      content: row.content,
       url: row.url,
-      author: row.author,
+      author: row.author || '',
       publishedAt: new Date(row.published_at || Date.now()),
-      guid: null, // Not needed for display
-      tags: row.tags,
+      guid: row.guid,
+      tags: row.tags || [],
       summary: row.summary,
-      aiTags: row.ai_tags,
+      aiTags: row.ai_tags || [],
       insights: row.insights,
-      relevanceScore: row.relevance_score,
-      embedding: null, // Not needed for display
-      rawData: {}, // Not needed for display
+      relevanceScore: row.relevance_score || 0,
+      embedding: row.embedding,
+      rawData: row.raw_data || {},
       processingStatus: row.processing_status,
-      aiProcessed: row.ai_processed,
-      sourceType: row.source_type,
-      profileName: row.profile_name,
-      engagement: {
-        views: row.engagement_views || 0,
-        clicks: row.engagement_clicks || 0,
-        reads: row.engagement_reads || 0,
-        isRead: row.engagement_is_read || false,
-        ctr: row.engagement_ctr || 0
+      aiProcessed: row.ai_processed || false,
+      sourceType: row.sources?.type || 'rss',
+      profileName: row.focus_profiles?.name || '',
+      engagement: engagementData[row.id] ? {
+        views: engagementData[row.id].views || 0,
+        clicks: engagementData[row.id].clicks || 0,
+        reads: engagementData[row.id].reads || 0,
+        isRead: engagementData[row.id].is_read || false,
+        ctr: engagementData[row.id].ctr || 0
+      } : {
+        views: 0,
+        clicks: 0,
+        reads: 0,
+        isRead: false,
+        ctr: 0
       }
     })) || []
   }
 
-  // Fast dashboard stats using optimized function
+  // Fast dashboard stats using direct queries
   async getDashboardStats(profileId?: string): Promise<{
     totalItems: number
     processedItems: number
@@ -237,20 +298,46 @@ export class DatabaseService {
     avgRelevanceScore: number
     lastUpdated: Date
   }> {
-    const { data, error } = await supabase
-      .rpc('get_dashboard_stats', {
-        p_profile_id: profileId || null
-      })
+    // Build query for stats
+    let query = supabase
+      .from('feed_items')
+      .select('id, processing_status, ai_processed, relevance_score, published_at', { count: 'exact' })
+    
+    if (profileId) {
+      query = query.eq('profile_id', profileId)
+    }
+    
+    // Only get recent items for stats
+    const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+    query = query.gte('created_at', oneDayAgo)
+    
+    const { data, error, count } = await query
     
     if (error) throw new Error(`Failed to fetch dashboard stats: ${error.message}`)
     
-    const stats = data?.[0]
+    // Calculate stats from the data
+    const totalItems = count || 0
+    const processedItems = data?.filter(item => item.processing_status === 'processed').length || 0
+    const aiProcessedItems = data?.filter(item => item.ai_processed === true).length || 0
+    
+    const relevanceScores = data
+      ?.filter(item => item.relevance_score && item.relevance_score > 0)
+      ?.map(item => item.relevance_score) || []
+    
+    const avgRelevanceScore = relevanceScores.length > 0
+      ? relevanceScores.reduce((sum, score) => sum + score, 0) / relevanceScores.length
+      : 0
+    
+    const lastUpdated = data && data.length > 0
+      ? new Date(Math.max(...data.map(item => new Date(item.published_at).getTime())))
+      : new Date()
+    
     return {
-      totalItems: parseInt(stats?.total_items || '0'),
-      processedItems: parseInt(stats?.processed_items || '0'),
-      aiProcessedItems: parseInt(stats?.ai_processed_items || '0'),
-      avgRelevanceScore: parseFloat(stats?.avg_relevance_score || '0'),
-      lastUpdated: stats?.last_updated ? new Date(stats.last_updated) : new Date()
+      totalItems,
+      processedItems,
+      aiProcessedItems,
+      avgRelevanceScore,
+      lastUpdated
     }
   }
   
@@ -391,32 +478,41 @@ export class DatabaseService {
   }
   
   async getEngagementSummary(itemIds?: string[]): Promise<Record<string, any>> {
-    let query = supabase
-      .from('mv_engagement_summary')
-      .select('*')
-    
-    if (itemIds && itemIds.length > 0) {
-      query = query.in('item_id', itemIds)
-    }
-    
-    const { data, error } = await query
-    
-    if (error) throw new Error(`Failed to fetch engagement summary: ${error.message}`)
-    
-    const summary: Record<string, any> = {}
-    data?.forEach(item => {
-      summary[item.item_id] = {
-        views: item.views,
-        clicks: item.clicks,
-        reads: item.reads,
-        isRead: item.is_read,
-        ctr: item.ctr,
-        profile: item.profile_id,
-        lastEngagement: item.last_engagement
+    try {
+      let query = supabase
+        .from('mv_engagement_summary')
+        .select('*')
+      
+      if (itemIds && itemIds.length > 0) {
+        query = query.in('item_id', itemIds)
       }
-    })
-    
-    return summary
+      
+      const { data, error } = await query
+      
+      if (error) {
+        // If materialized view doesn't exist, return empty summary
+        console.warn('Could not fetch engagement summary:', error.message)
+        return {}
+      }
+      
+      const summary: Record<string, any> = {}
+      data?.forEach(item => {
+        summary[item.item_id] = {
+          views: item.views,
+          clicks: item.clicks,
+          reads: item.reads,
+          isRead: item.is_read,
+          ctr: item.ctr,
+          profile: item.profile_id,
+          lastEngagement: item.last_engagement
+        }
+      })
+      
+      return summary
+    } catch (err) {
+      console.warn('Error fetching engagement summary:', err)
+      return {}
+    }
   }
   
   // ===== AGGREGATION RUNS =====
@@ -476,20 +572,26 @@ export class DatabaseService {
   // ===== VECTOR SIMILARITY =====
   
   async findSimilarItems(embedding: number[], threshold: number = 0.8, limit: number = 10): Promise<FeedItem[]> {
-    // Note: This requires the pgvector extension and proper indexing
-    const { data, error } = await supabase
-      .rpc('find_similar_items', {
-        query_embedding: embedding,
-        similarity_threshold: threshold,
-        match_count: limit
-      })
-    
-    if (error) {
-      console.warn('Vector similarity search failed:', error.message)
+    try {
+      // Note: This requires the pgvector extension and proper indexing
+      const { data, error } = await supabase
+        .rpc('find_similar_items', {
+          query_embedding: embedding,
+          similarity_threshold: threshold,
+          match_count: limit
+        })
+      
+      if (error) {
+        console.warn('Vector similarity search failed:', error.message)
+        return []
+      }
+      
+      return data?.map(this.mapFeedItemRowToItem) || []
+    } catch (err) {
+      // RPC function might not exist
+      console.warn('Vector similarity search not available:', err)
       return []
     }
-    
-    return data?.map(this.mapFeedItemRowToItem) || []
   }
   
   // ===== HELPER METHODS =====
@@ -562,16 +664,16 @@ export class DatabaseService {
   private mapFeedItemRowToItem(row: FeedItemRow): FeedItem {
     return {
       id: row.id,
-      source: (row.source_id as any) || 'rss',
-      sourceName: (row as any).source_name,
-      sourceUrl: (row as any).source_url || '',
       title: row.title,
       content: row.content || '',
       url: row.url,
       author: row.author || '',
       publishedAt: new Date(row.published_at || Date.now()),
-      tags: row.tags,
-      relevanceScore: row.relevance_score,
+      source: (row.source_id as any) || 'rss',
+      sourceName: (row as any).source_name,
+      sourceUrl: (row as any).source_url || '',
+      tags: row.tags || [],
+      relevanceScore: row.relevance_score || 0,
       aiSummary: row.summary,
       metadata: {
         guid: row.guid,
