@@ -60,8 +60,10 @@ export class DatabaseService {
   }
   
   async createSource(source: Omit<SourceConfig, 'id'>): Promise<SourceConfig> {
+    // Generate a stable ID based on the source URL to prevent duplicates
+    const urlHash = source.url.replace(/[^a-zA-Z0-9]/g, '').slice(0, 10).toLowerCase()
     const sourceData = {
-      id: `${source.type}-${Date.now()}`,
+      id: `${source.type}-${urlHash}`,
       name: source.name,
       type: source.type,
       url: source.url,

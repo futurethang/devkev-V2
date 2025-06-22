@@ -148,11 +148,49 @@ export async function GET(request: NextRequest) {
           )
         }
         
-        if (enableAI) {
-          result = await aggregator.fetchFromProfileWithAI(profile, includeItems)
+        if (includeItems) {
+          // For includeItems=true, return stored data instead of fetching fresh
+          const dbService = new (await import('../../../lib/database/database-service')).DatabaseService()
+          const feedItems = await dbService.getFeedItems({
+            profileId,
+            limit: 50,
+            processedOnly: true
+          })
+          
+          result = {
+            profileId,
+            profileName: profile.name,
+            totalItems: feedItems.length,
+            processedItems: feedItems.length,
+            processedFeedItems: feedItems.map(item => ({
+              id: item.id,
+              title: item.title,
+              description: item.description || '',
+              content: item.content || '',
+              url: item.url,
+              source: item.source,
+              sourceName: item.sourceName || '',
+              author: item.author,
+              publishedAt: item.publishedAt.toISOString(),
+              tags: item.tags || [],
+              relevanceScore: item.relevanceScore || 0,
+              aiSummary: item.summary,
+              aiTags: item.aiTags || [],
+              isRead: false, // Will be updated by the client-side hook
+              engagementData: item.engagement
+            })),
+            avgRelevanceScore: feedItems.reduce((sum, item) => sum + (item.relevanceScore || 0), 0) / feedItems.length || 0,
+            successfulFetches: 1,
+            duplicatesRemoved: 0,
+            errors: [],
+            fetchResults: []
+          }
+          ;(result as any).aiEnabled = enableAI
+        } else if (enableAI) {
+          result = await aggregator.fetchFromProfileWithAI(profile, false)
           ;(result as any).aiEnabled = true
         } else {
-          result = await aggregator.fetchFromProfile(profile, includeItems)
+          result = await aggregator.fetchFromProfile(profile, false)
           ;(result as any).aiEnabled = false
         }
       } catch (error) {
