@@ -132,12 +132,8 @@ export class DatabaseConfigLoader {
       const existingSources = await this.dbService.getSources()
       const existingProfiles = await this.dbService.getProfiles()
       
-      // Only initialize if database is empty
-      if (existingSources.length === 0 && existingProfiles.length === 0) {
-        console.log('Initializing default configuration in Supabase...')
-        
-        // Create default sources
-        const defaultSources: Omit<SourceConfig, 'id'>[] = [
+      // Define default sources
+      const defaultSources: Omit<SourceConfig, 'id'>[] = [
           {
             name: 'Vercel Blog',
             type: 'rss',
@@ -162,10 +158,10 @@ export class DatabaseConfigLoader {
             fetchInterval: 1800,
             weight: 0.9
           }
-        ]
-        
-        // Create default profiles
-        const defaultProfiles: Omit<FocusProfile, 'id'>[] = [
+      ]
+      
+      // Define default profiles
+      const defaultProfiles: Omit<FocusProfile, 'id'>[] = [
           {
             name: 'AI Product Builder',
             description: 'Focus on AI products, tools, and product development',
@@ -182,7 +178,11 @@ export class DatabaseConfigLoader {
                 require: []
               }
             },
-            sources: ['vercel-blog', 'github-trending-typescript', 'hackernews-ai'],
+            // IDs will be generated as: type-urlhash
+            // vercel: rss-httpsvercel (first 10 chars of cleaned URL)
+            // github: github-httpsapigi
+            // hn: hn-httpshacker
+            sources: ['rss-httpsvercel', 'github-httpsapigi', 'hn-httpshacker'],
             processing: {
               generateSummary: true,
               enhanceTags: true,
@@ -208,7 +208,7 @@ export class DatabaseConfigLoader {
                 require: []
               }
             },
-            sources: ['github-trending-typescript', 'hackernews-ai'],
+            sources: ['github-httpsapigi', 'hn-httpshacker'],
             processing: {
               generateSummary: true,
               enhanceTags: true,
@@ -218,15 +218,28 @@ export class DatabaseConfigLoader {
               maxAgeDays: 7
             }
           }
-        ]
-        
-        // Insert default configuration
+      ]
+      
+      // Initialize sources if none exist
+      if (existingSources.length === 0) {
+        console.log('Initializing default sources in Supabase...')
         for (const source of defaultSources) {
-          await this.dbService.createSource(source)
+          try {
+            await this.dbService.createSource(source)
+          } catch (error) {
+            console.warn(`Source ${source.name} may already exist:`, error)
+          }
         }
-        
+      }
+      
+      // Initialize profiles separately if they don't exist
+      if (existingProfiles.length === 0) {
         for (const profile of defaultProfiles) {
-          await this.dbService.createProfile(profile)
+          try {
+            await this.dbService.createProfile(profile)
+          } catch (error) {
+            console.warn(`Profile ${profile.name} may already exist:`, error)
+          }
         }
         
         console.log('Default configuration initialized successfully')
