@@ -165,7 +165,7 @@ export async function GET(request: NextRequest) {
             processedFeedItems: feedItems.map(item => ({
               id: item.id,
               title: item.title,
-              description: item.description || '',
+              description: item.content || '',
               content: item.content || '',
               url: item.url,
               source: item.source,
@@ -174,8 +174,8 @@ export async function GET(request: NextRequest) {
               publishedAt: item.publishedAt.toISOString(),
               tags: item.tags || [],
               relevanceScore: item.relevanceScore || 0,
-              aiSummary: item.summary,
-              aiTags: item.aiTags || [],
+              aiSummary: (item as any).summary,
+              aiTags: (item as any).aiTags || [],
               isRead: false, // Will be updated by the client-side hook
               engagementData: item.engagement
             })),
