@@ -136,53 +136,23 @@ export async function GET(request: NextRequest) {
         )
       }
       
-      // For now, we'll need to get the profile through the aggregator's config loader
-      // This is a temporary solution until we refactor the API structure
+      // Get the actual profile from the database
       try {
+        const profiles = await aggregator['configLoader'].getActiveProfiles()
+        const profile = profiles.find(p => p.id === profileId)
+        
+        if (!profile) {
+          return NextResponse.json(
+            { error: `Profile '${profileId}' not found` },
+            { status: 404 }
+          )
+        }
+        
         if (enableAI) {
-          const profileData = { 
-            id: profileId, 
-            name: profileId, 
-            enabled: true,
-            description: '',
-            weight: 1.0,
-            keywords: {
-              boost: { high: [], medium: [], low: [] },
-              filter: { exclude: [], require: [] }
-            },
-            sources: [],
-            processing: { 
-              checkDuplicates: true, 
-              minRelevanceScore: 0.3,
-              generateSummary: true,
-              enhanceTags: true,
-              scoreRelevance: true,
-              maxAgeDays: 7
-            }
-          }
-          result = await aggregator.fetchFromProfileWithAI(profileData, includeItems)
+          result = await aggregator.fetchFromProfileWithAI(profile, includeItems)
           ;(result as any).aiEnabled = true
         } else {
-          result = await aggregator.fetchFromProfile({ 
-            id: profileId, 
-            name: profileId, 
-            enabled: true,
-            description: '',
-            weight: 1.0,
-            keywords: {
-              boost: { high: [], medium: [], low: [] },
-              filter: { exclude: [], require: [] }
-            },
-            sources: [],
-            processing: { 
-              checkDuplicates: true, 
-              minRelevanceScore: 0.3,
-              generateSummary: true,
-              enhanceTags: true,
-              scoreRelevance: true,
-              maxAgeDays: 7
-            }
-          }, includeItems)
+          result = await aggregator.fetchFromProfile(profile, includeItems)
           ;(result as any).aiEnabled = false
         }
       } catch (error) {
