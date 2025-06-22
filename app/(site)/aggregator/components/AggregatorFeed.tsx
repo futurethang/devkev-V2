@@ -125,7 +125,7 @@ export function AggregatorFeed({ items, profiles, sources }: AggregatorFeedProps
             key={item.id}
             item={item}
             profile={profiles.find(p => p.id === (item as any).profileId)}
-            source={sources.find(s => s.id === (item as any).sourceId)}
+            source={sources.find(s => s.id === item.sourceId)}
             viewMode={viewMode}
           />
         ))}
