@@ -3,6 +3,7 @@
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useState } from 'react'
 import type { FocusProfile, SourceConfig } from '../../../../aggregator/lib/types/feed'
+import { AIProcessButton } from './AIProcessButton'
 import styles from './AggregatorControls.module.css'
 
 interface AggregatorControlsProps {
@@ -140,6 +141,8 @@ export function AggregatorControls({
             </>
           )}
         </button>
+        
+        <AIProcessButton profileId={currentProfile?.id} />
         
         <div className={styles.infoText}>
           {currentProfile && (

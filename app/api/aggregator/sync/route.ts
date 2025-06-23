@@ -80,10 +80,10 @@ export async function POST(request: NextRequest) {
         }
         
         // Get profile and sync
-        const profiles = await aggregator['configLoader'].getActiveProfiles()
-        const profile = profiles.find(p => p.id === profileId)
+        const profilesForSync = await aggregator['configLoader'].getActiveProfiles()
+        const profileForSync = profilesForSync.find(p => p.id === profileId)
         
-        if (!profile) {
+        if (!profileForSync) {
           return NextResponse.json(
             { error: `Profile '${profileId}' not found` },
             { status: 404 }
@@ -91,11 +91,86 @@ export async function POST(request: NextRequest) {
         }
         
         if (includeAI) {
-          result = await aggregator.fetchFromProfileWithAI(profile, true)
+          result = await aggregator.fetchFromProfileWithAI(profileForSync, true)
         } else {
-          result = await aggregator.fetchFromProfile(profile, true)
+          result = await aggregator.fetchFromProfile(profileForSync, true)
         }
         break
+        
+      case 'ai_batch_process':
+        // Process unprocessed items with AI in small batches
+        const batchSize = body.batchSize || 10 // Small batch to avoid timeout
+        const dbServiceForBatch = new DatabaseService()
+        
+        // Get unprocessed items
+        const unprocessedItems = await dbServiceForBatch.getFeedItems({
+          profileId,
+          limit: batchSize,
+          processedOnly: false,
+          aiProcessedOnly: false // Get items not yet AI processed
+        })
+        
+        if (unprocessedItems.length === 0) {
+          return NextResponse.json({
+            success: true,
+            operation: 'ai_batch_process',
+            message: 'No unprocessed items found',
+            timestamp: new Date().toISOString(),
+            duration: Date.now() - startTime
+          })
+        }
+        
+        // Process items with AI
+        const contentProcessor = aggregator['contentProcessor']
+        await contentProcessor.initializeAISync()
+        
+        const profileForBatch = profileId ? (await aggregator['configLoader'].getActiveProfiles()).find(p => p.id === profileId) : null
+        
+        // Process with AI if we have a profile, otherwise skip AI
+        let processedCount = 0
+        if (profileForBatch) {
+          const enhancedItems = await contentProcessor.processBatchWithAI(
+            unprocessedItems.map(item => ({
+              id: item.id,
+              title: item.title,
+              content: item.content || '',
+              url: item.url,
+              author: item.author || '',
+              publishedAt: item.publishedAt,
+              source: item.source,
+              sourceUrl: item.sourceName || '',
+              tags: item.tags || [],
+              relevanceScore: item.relevanceScore || 0
+            })),
+            profileForBatch
+          )
+          
+          // Update items in database
+          for (const item of enhancedItems) {
+            await dbServiceForBatch.updateFeedItem(item.id, {
+              summary: item.aiSummary,
+              ai_tags: item.aiTags || [],
+              insights: item.aiInsights,
+              ai_processed: true,
+              relevance_score: item.relevanceScore
+            })
+            processedCount++
+          }
+        }
+        
+        return NextResponse.json({
+          success: true,
+          operation: 'ai_batch_process',
+          result: {
+            processedCount,
+            failedCount: unprocessedItems.length - processedCount,
+            batchSize,
+            profileId: profileId || 'all',
+            remainingUnprocessed: await dbServiceForBatch.getUnprocessedCount(profileId)
+          },
+          timestamp: new Date().toISOString(),
+          duration: Date.now() - startTime
+        })
         
       case 'health_check':
         // Just check system health

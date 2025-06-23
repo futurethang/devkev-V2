@@ -190,6 +190,7 @@ export class DatabaseService {
     limit?: number
     offset?: number
     processedOnly?: boolean
+    aiProcessedOnly?: boolean
   } = {}): Promise<FeedItem[]> {
     // Build query without RPC function
     let query = supabase
@@ -224,6 +225,13 @@ export class DatabaseService {
     
     if (options.processedOnly) {
       query = query.eq('processing_status', 'processed')
+    }
+    
+    // Filter for AI processing status
+    if (options.aiProcessedOnly === false) {
+      query = query.eq('ai_processed', false)
+    } else if (options.aiProcessedOnly === true) {
+      query = query.eq('ai_processed', true)
     }
     
     const { data, error } = await query
@@ -433,26 +441,6 @@ export class DatabaseService {
     return data?.map(this.mapFeedItemRowToItem) || []
   }
   
-  async updateFeedItem(id: string, updates: Partial<FeedItem>): Promise<FeedItem> {
-    const { data, error } = await supabase
-      .from('feed_items')
-      .update({
-        summary: (updates as any).summary,
-        ai_tags: (updates as any).aiTags,
-        insights: (updates as any).insights,
-        relevance_score: updates.relevanceScore,
-        embedding: (updates as any).embedding,
-        processing_status: (updates as any).processingStatus,
-        ai_processed: (updates as any).aiProcessed
-      })
-      .eq('id', id)
-      .select()
-      .single()
-    
-    if (error) throw new Error(`Failed to update feed item: ${error.message}`)
-    
-    return this.mapFeedItemRowToItem(data)
-  }
   
   // ===== ENGAGEMENT TRACKING =====
   
@@ -688,5 +676,39 @@ export class DatabaseService {
         aiProcessed: row.ai_processed
       }
     }
+  }
+  
+  // ===== NEW METHODS FOR AI BATCH PROCESSING =====
+  
+  async updateFeedItem(id: string, updates: {
+    summary?: any
+    ai_tags?: string[]
+    insights?: any
+    ai_processed?: boolean
+    relevance_score?: number
+  }): Promise<void> {
+    const { error } = await supabase
+      .from('feed_items')
+      .update(updates)
+      .eq('id', id)
+    
+    if (error) throw new Error(`Failed to update feed item: ${error.message}`)
+  }
+  
+  async getUnprocessedCount(profileId?: string): Promise<number> {
+    let query = supabase
+      .from('feed_items')
+      .select('id', { count: 'exact', head: true })
+      .eq('ai_processed', false)
+    
+    if (profileId) {
+      query = query.eq('profile_id', profileId)
+    }
+    
+    const { count, error } = await query
+    
+    if (error) throw new Error(`Failed to get unprocessed count: ${error.message}`)
+    
+    return count || 0
   }
 }
