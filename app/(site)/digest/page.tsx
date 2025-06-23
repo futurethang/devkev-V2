@@ -3,33 +3,7 @@
 import { useState } from 'react'
 import styles from './page.module.css'
 import { useAggregatorData, useTrackEngagement } from '../../../lib/aggregator-query'
-
-interface FeedItem {
-  id: string
-  title: string
-  content: string
-  url: string
-  author: string
-  publishedAt: string
-  source: string
-  sourceName?: string
-  tags: string[]
-  relevanceScore?: number
-  isRead?: boolean
-  aiSummary?: {
-    summary: string
-    keyPoints: string[]
-    confidence: number
-    insights?: string[]
-  }
-  aiTags?: string[]
-  engagementData?: {
-    views: number
-    clicks: number
-    ctr: number
-    lastEngagement: string
-  }
-}
+import type { FeedItemUI, AISummary } from '../../../aggregator/lib/types/feed'
 
 export default function DigestPage() {
   const [selectedProfile, setSelectedProfile] = useState('ai-product')
@@ -93,7 +67,12 @@ export default function DigestPage() {
   const getFilteredAndSortedArticles = () => {
     if (!digestData?.processedFeedItems) return []
     
-    let articles = [...digestData.processedFeedItems]
+    // Adapt AggregatorItem to be compatible with FeedItemUI by adding missing properties
+    let articles = [...digestData.processedFeedItems].map(item => ({
+      ...item,
+      sourceUrl: item.url, // AggregatorItem doesn't have sourceUrl, use url as sourceUrl
+      content: item.description || '' // AggregatorItem doesn't have content, use description or empty string
+    })) as FeedItemUI[]
     
     // Filter by read status
     if (!showReadArticles) {
@@ -282,22 +261,28 @@ export default function DigestPage() {
                         <span className={styles.time}>{formatDate(item.publishedAt)}</span>
                       </div>
 
-                      {item.aiSummary && typeof item.aiSummary === 'object' && (
+                      {item.aiSummary && (
                         <div className={styles.summary}>
-                          <p>{(item.aiSummary as any).summary || 'AI analysis available'}</p>
-                          
-                          {(item.aiSummary as any).keyPoints && Array.isArray((item.aiSummary as any).keyPoints) && (item.aiSummary as any).keyPoints.length > 0 && (
-                            <ul className={styles.keyPoints}>
-                              {((item.aiSummary as any).keyPoints || []).slice(0, 3).map((point: string, i: number) => (
-                                <li key={i}>{point}</li>
-                              ))}
-                            </ul>
+                          {typeof item.aiSummary === 'string' ? (
+                            <p>{item.aiSummary}</p>
+                          ) : (
+                            <>
+                              <p>{item.aiSummary.summary || 'AI analysis available'}</p>
+                              
+                              {item.aiSummary.keyPoints && item.aiSummary.keyPoints.length > 0 && (
+                                <ul className={styles.keyPoints}>
+                                  {item.aiSummary.keyPoints.slice(0, 3).map((point: string, i: number) => (
+                                    <li key={i}>{point}</li>
+                                  ))}
+                                </ul>
+                              )}
+                            </>
                           )}
                         </div>
                       )}
 
                       <div className={styles.tags}>
-                        {item.tags && Array.isArray(item.tags) && item.tags.slice(0, 5).map(tag => (
+                        {item.aiTags && item.aiTags.slice(0, 5).map(tag => (
                           <span key={tag} className={styles.tag}>
                             {tag}
                           </span>

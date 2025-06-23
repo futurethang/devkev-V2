@@ -106,10 +106,11 @@ export class AIProcessor {
     const opts = { ...this.config.processing, ...options }
     const startTime = Date.now()
 
-    try {
-      const enhanced: EnhancedFeedItem = { ...item }
+  try {
+    // Create a basic enhanced item without casting directly to avoid type errors
+    const enhanced = { ...item } as Omit<EnhancedFeedItem, 'aiSummary'> & { aiSummary?: ContentSummary }
 
-      // Generate AI summary
+    // Generate AI summary
       if (opts.generateSummary) {
         enhanced.aiSummary = await this.activeProvider!.generateSummary(
           item.content,
@@ -157,7 +158,7 @@ export class AIProcessor {
     } catch (error) {
       console.warn(`AI processing failed for item ${item.id}:`, error)
       
-      // Return original item with error metadata
+    // Return original item with error metadata, with type casting to handle aiSummary type incompatibility
       return {
         ...item,
         processingMetadata: {
@@ -166,7 +167,7 @@ export class AIProcessor {
           processingTime: Date.now() - startTime,
           confidence: 0
         }
-      }
+      } as EnhancedFeedItem
     }
   }
 

@@ -39,10 +39,80 @@ export interface FeedItem {
   relevanceScore?: number
   
   /** AI-generated summary */
-  aiSummary?: string | any
+  aiSummary?: string | AISummary
+  
+  /** AI-generated tags */
+  aiTags?: string[]
+  
+  /** AI-generated insights */
+  insights?: string
+  
+  /** Whether AI processing has been completed */
+  aiProcessed?: boolean
+  
+  /** Brief description (may be different from content) */
+  description?: string
+  
+  /** Whether the user has read this item */
+  isRead?: boolean
+  
+  /** Semantic similarity score for duplicates */
+  semanticScore?: number
+  
+  /** Processing metadata */
+  processingMetadata?: ProcessingMetadata
+  
+  /** Engagement tracking data */
+  engagement?: EngagementData
   
   /** Raw metadata from the original source */
   metadata?: Record<string, unknown>
+}
+
+/**
+ * Structured AI summary with detailed analysis
+ */
+export interface AISummary {
+  summary: string
+  keyPoints: string[]
+  confidence: number
+  insights?: string[]
+}
+
+/**
+ * Processing metadata for AI analysis tracking
+ */
+export interface ProcessingMetadata {
+  provider: string
+  model: string
+  processingTime: number
+  confidence: number
+}
+
+/**
+ * Engagement tracking data
+ */
+export interface EngagementData {
+  views: number
+  clicks: number
+  reads: number
+  isRead: boolean
+  ctr: number
+  lastEngagement?: string
+}
+
+/**
+ * UI-specific feed item type with string dates for JSON serialization
+ */
+export interface FeedItemUI extends Omit<FeedItem, 'publishedAt'> {
+  publishedAt: string
+}
+
+/**
+ * Feed item with guaranteed engagement data for components
+ */
+export interface FeedItemWithEngagement extends FeedItem {
+  engagement: EngagementData
 }
 
 /**

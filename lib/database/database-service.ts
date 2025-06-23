@@ -677,7 +677,7 @@ export class DatabaseService {
       sourceUrl: (row as any).source_url || '',
       tags: row.tags || [],
       relevanceScore: row.relevance_score || 0,
-      aiSummary: row.summary,
+      aiSummary: row.summary || undefined, // Convert null to undefined to match FeedItem type
       metadata: {
         guid: row.guid,
         insights: row.insights,
