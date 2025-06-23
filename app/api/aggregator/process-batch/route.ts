@@ -55,6 +55,13 @@ export async function GET(request: NextRequest) {
     const contentProcessor = aggregator['contentProcessor']
     await contentProcessor.initializeAISync()
     
+    console.log('AI Processor Status:', {
+      isAIEnabled: contentProcessor.isAIEnabled(),
+      hasAIProcessor: !!contentProcessor.aiProcessor,
+      aiProcessorReady: contentProcessor.aiProcessor?.isReady(),
+      anthropicKey: !!process.env.ANTHROPIC_API_KEY
+    })
+    
     const profile = profileId ? 
       (await aggregator['configLoader'].getActiveProfiles()).find(p => p.id === profileId) : 
       null
@@ -84,10 +91,17 @@ export async function GET(request: NextRequest) {
       // Update items in database
       for (const item of enhancedItems) {
         try {
+          console.log(`Processing item ${item.id}:`, {
+            hasAISummary: !!item.aiSummary,
+            summaryLength: item.aiSummary?.length || 0,
+            hasAITags: !!(item.aiTags && item.aiTags.length > 0),
+            hasInsights: !!item.aiInsights
+          })
+          
           await dbService.updateFeedItem(item.id, {
-            summary: item.aiSummary,
+            summary: item.aiSummary || 'AI processing completed but no summary generated',
             ai_tags: item.aiTags || [],
-            insights: item.aiInsights,
+            insights: item.aiInsights || 'No insights generated',
             ai_processed: true,
             relevance_score: item.relevanceScore
           })
@@ -112,7 +126,13 @@ export async function GET(request: NextRequest) {
       failedCount,
       remainingCount,
       duration: Date.now() - startTime,
-      profileId: profileId || 'all'
+      profileId: profileId || 'all',
+      debug: {
+        aiEnabled: contentProcessor.isAIEnabled(),
+        hasProfile: !!profile,
+        unprocessedItemsFound: unprocessedItems.length,
+        anthropicKeyPresent: !!process.env.ANTHROPIC_API_KEY
+      }
     })
     
   } catch (error) {
