@@ -221,6 +221,38 @@ export default [
     }
   },
   {
+    "title": "Supercharge Your AI Coding Workflow with Git Worktrees: The Multi-Pronged Development Approach",
+    "description": "Learn how to use Git worktrees with AI coding assistants to work on multiple features simultaneously, maintain context across parallel development sessions, and eliminate context-switching overhead.",
+    "date": new Date("2024-06-15T00:00:00.000Z"),
+    "tags": [
+      "Git",
+      "AI Workflow",
+      "Developer Experience",
+      "Productivity",
+      "Version Control"
+    ],
+    "published": true,
+    "mock": true,
+    "content": "If you're using AI coding assistants like Cursor, Claude Code, or Aider, you've probably felt the frustration of being limited to working on one feature at a time. You're in the middle of debugging a critical issue when inspiration strikes for a new feature, but switching contexts means losing your flow on both fronts.\n\nGit worktrees solve this elegantly, letting you run multiple AI agents simultaneously on different branches of the same codebase. Here's how to set up a workflow that will transform your development productivity.\n\n## The Problem: Context Switching Kills Flow\n\nTraditional Git workflow forces you into this cycle:\n1. Working on Feature A\n2. Critical bug discovered\n3. `git stash` your work\n4. `git checkout` bug-fix branch\n5. Fix bug, commit, switch back\n6. `git stash pop` and try to remember where you were\n\nWith AI assistants, this is even more painful because you lose the context of your conversation, the current state of your debugging session, or the momentum of your feature development.\n\n## The Solution: Git Worktrees + Parallel AI Sessions\n\nGit worktrees let you have multiple working directories from the same repository, each on different branches. Combined with AI coding assistants, this creates a powerful parallel development environment.\n\n## Setting Up Your Multi-Pronged Workflow\n\n### Step 1: Initial Repository Setup\n\nStart from your main repository:\n\n```bash\n# Navigate to your main project\ncd /path/to/your-project\n\n# Create your first branch (bug fix)\ngit checkout -b bugfix/user-authentication\n\n# Create a worktree for feature development\ngit worktree add ../your-project-feature feature/dashboard-redesign\n```\n\nNow you have:\n- `./your-project/` → `bugfix/user-authentication` branch\n- `../your-project-feature/` → `feature/dashboard-redesign` branch\n\n### Step 2: Terminal and Editor Setup\n\n**Terminal Session 1 (Bug Fix):**\n```bash\ncd /path/to/your-project\n# Start your AI assistant\ncursor .  # or code . for VS Code\n# In terminal: aider, or claude-code, etc.\n```\n\n**Terminal Session 2 (Feature Development):**\n```bash\ncd /path/to/your-project-feature\n# Start another AI assistant instance\ncursor .  # Opens in separate window\n# In terminal: another aider session, etc.\n```\n\n### Step 3: Parallel Development\n\nNow you can:\n- Debug authentication issues in one window while building dashboard features in another\n- Run different development servers on different ports\n- Have distinct AI conversation contexts for each problem\n- Commit to either branch independently without losing context\n\n## Real-World Workflow Example\n\nHere's how this looks in practice:\n\n```bash\n# Terminal 1: Bug fixing session\ncd ~/projects/myapp\ngit checkout -b hotfix/login-redirect\ncursor .\n# Start Claude Code or Aider focused on the login bug\n\n# Terminal 2: Feature development  \ncd ~/projects/myapp-feature\ngit worktree add . feature/user-dashboard\ncursor .\n# Start another AI session focused on dashboard development\n\n# Terminal 3: Maybe even a third worktree for refactoring\ncd ~/projects/myapp-refactor  \ngit worktree add . refactor/api-cleanup\ncursor .\n```\n\nEach session maintains its own:\n- File watchers and dev servers\n- AI conversation context\n- Uncommitted changes\n- Testing environment\n\n## Advanced Tips\n\n### Branch Management\n```bash\n# Create branch and worktree in one command\ngit worktree add -b feature/new-api ../project-api\n\n# List all your active worktrees\ngit worktree list\n\n# See which branches exist\ngit branch -a\n```\n\n### Development Server Management\n```bash\n# Terminal 1: Main app on port 3000\nnpm run dev\n\n# Terminal 2: Feature branch on port 3001  \nnpm run dev -- --port 3001\n\n# Terminal 3: API work on port 8000\nnpm run api:dev\n```\n\n### AI Assistant Coordination\n- Use descriptive branch names that help AI understand context\n- Start each AI session with a brief explanation of what you're working on\n- Use commit messages to help AI understand the progression\n\n## Benefits of This Approach\n\n**Maintain Flow State**: Never lose momentum switching between tasks\n\n**Context Preservation**: Each AI session maintains awareness of its specific problem domain\n\n**Parallel Testing**: Run different test suites simultaneously\n\n**Risk Isolation**: Experimental features don't interfere with critical bug fixes\n\n**Faster Iteration**: Compare approaches by having them side-by-side\n\n## Cleanup and Best Practices\n\n### Before Removing Worktrees\nAlways commit your work first:\n\n```bash\n# In each worktree directory\ngit add .\ngit commit -m \"Your progress so far\"\n\n# Optionally push to backup remotely\ngit push origin feature/dashboard-redesign\n```\n\n### Removing Worktrees\n```bash\n# From your main repository\ngit worktree remove ../your-project-feature\n\n# The branch still exists with all commits\ngit branch -a  # You'll see feature/dashboard-redesign\n\n# Recreate worktree anytime\ngit worktree add ../project-feature-v2 feature/dashboard-redesign\n```\n\n### Managing Multiple Worktrees\n```bash\n# Quick status check across all worktrees\ngit worktree list\n\n# Clean up unused worktrees\ngit worktree prune\n```\n\n## When to Use This Approach\n\nThis workflow shines when you're:\n- Working on multiple unrelated features\n- Handling urgent bugs while developing features  \n- Experimenting with different approaches to the same problem\n- Collaborating with AI on complex, multi-faceted projects\n- Managing both frontend and backend changes simultaneously\n\n## Conclusion\n\nGit worktrees unlock a new level of productivity when combined with AI coding assistants. Instead of being forced into linear development, you can tackle multiple problems simultaneously while maintaining the full context and flow state that makes AI collaboration so powerful.\n\nTry this approach on your next project - you'll wonder how you ever managed without it.\n\n---\n\n*Have you tried Git worktrees with AI assistants? Share your experience and tips in the comments below.*",
+    "_meta": {
+      "filePath": "git_worktree_blog_post.mdx",
+      "fileName": "git_worktree_blog_post.mdx",
+      "directory": ".",
+      "extension": "mdx",
+      "path": "git_worktree_blog_post"
+    },
+    "url": "/blog/git_worktree_blog_post",
+    "slug": "git_worktree_blog_post",
+    "_id": "git_worktree_blog_post.mdx",
+    "_raw": {
+      "sourceFilePath": "git_worktree_blog_post.mdx",
+      "sourceFileName": "git_worktree_blog_post.mdx",
+      "sourceFileDir": ".",
+      "flattenedPath": "git_worktree_blog_post",
+      "contentType": "mdx"
+    }
+  },
+  {
     "title": "Hello AI World: Building at 10x Speed",
     "description": "How I transformed my development workflow with AI tools and what it means for the future of software engineering",
     "date": new Date("2024-01-10T00:00:00.000Z"),

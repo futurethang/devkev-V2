@@ -57,8 +57,6 @@ export async function GET(request: NextRequest) {
     
     console.log('AI Processor Status:', {
       isAIEnabled: contentProcessor.isAIEnabled(),
-      hasAIProcessor: !!contentProcessor.aiProcessor,
-      aiProcessorReady: contentProcessor.aiProcessor?.isReady(),
       anthropicKey: !!process.env.ANTHROPIC_API_KEY
     })
     
@@ -93,13 +91,21 @@ export async function GET(request: NextRequest) {
         try {
           console.log(`Processing item ${item.id}:`, {
             hasAISummary: !!item.aiSummary,
-            summaryLength: item.aiSummary?.length || 0,
+            summaryType: typeof item.aiSummary,
             hasAITags: !!(item.aiTags && item.aiTags.length > 0),
             hasInsights: !!item.aiInsights
           })
           
+          // Extract summary text from AI summary object or use string directly
+          let summaryText = 'AI processing completed but no summary generated'
+          if (typeof item.aiSummary === 'string') {
+            summaryText = item.aiSummary
+          } else if (item.aiSummary && typeof item.aiSummary === 'object' && 'summary' in item.aiSummary) {
+            summaryText = item.aiSummary.summary
+          }
+          
           await dbService.updateFeedItem(item.id, {
-            summary: item.aiSummary || 'AI processing completed but no summary generated',
+            summary: summaryText,
             ai_tags: item.aiTags || [],
             insights: item.aiInsights || 'No insights generated',
             ai_processed: true,
