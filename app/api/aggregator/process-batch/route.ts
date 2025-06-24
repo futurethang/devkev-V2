@@ -68,6 +68,8 @@ export async function GET(request: NextRequest) {
     let successCount = 0
     let failedCount = 0
     
+    let processedItemDetails: any[] = []
+    
     if (profile) {
       // Process the batch
       const enhancedItems = await contentProcessor.processBatchWithAI(
@@ -97,21 +99,44 @@ export async function GET(request: NextRequest) {
           })
           
           // Extract summary text from AI summary object or use string directly
-          let summaryText = 'AI processing completed but no summary generated'
-          if (typeof item.aiSummary === 'string') {
-            summaryText = item.aiSummary
-          } else if (item.aiSummary && typeof item.aiSummary === 'object' && 'summary' in item.aiSummary) {
-            summaryText = item.aiSummary.summary
+          let summaryData = null
+          if (item.aiSummary) {
+            if (typeof item.aiSummary === 'string') {
+              summaryData = item.aiSummary
+            } else if (typeof item.aiSummary === 'object') {
+              // Store the entire summary object as JSON
+              summaryData = item.aiSummary
+            }
           }
           
+          console.log(`[Process-Batch] Updating database for ${item.id}:`, {
+            hasSummaryData: !!summaryData,
+            summaryDataType: typeof summaryData,
+            aiTagsCount: item.aiTags?.length || 0
+          })
+          
           await dbService.updateFeedItem(item.id, {
-            summary: summaryText,
+            summary: summaryData,
             ai_tags: item.aiTags || [],
-            insights: item.aiInsights || 'No insights generated',
+            insights: item.aiInsights,
             ai_processed: true,
             relevance_score: item.relevanceScore
           })
           successCount++
+          
+          processedItemDetails.push({
+            id: item.id,
+            title: item.title.substring(0, 50),
+            summaryPreview: (() => {
+              if (!summaryData) return 'No summary'
+              if (typeof summaryData === 'string') {
+                return (summaryData as string).substring(0, 50)
+              }
+              const obj = summaryData as any
+              return obj.summary ? String(obj.summary).substring(0, 50) : 'No summary text'
+            })(),
+            aiTagsCount: item.aiTags?.length || 0
+          })
         } catch (error) {
           console.error(`Failed to update item ${item.id}:`, error)
           failedCount++
@@ -138,7 +163,8 @@ export async function GET(request: NextRequest) {
         hasProfile: !!profile,
         unprocessedItemsFound: unprocessedItems.length,
         anthropicKeyPresent: !!process.env.ANTHROPIC_API_KEY
-      }
+      },
+      processedItems: processedItemDetails
     })
     
   } catch (error) {

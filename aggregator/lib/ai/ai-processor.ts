@@ -99,6 +99,13 @@ export class AIProcessor {
     profile?: FocusProfile,
     options?: Partial<AIProcessingOptions>
   ): Promise<EnhancedFeedItem> {
+    console.log('[AIProcessor] Processing item:', {
+      itemId: item.id,
+      contentLength: item.content?.length || 0,
+      profileId: profile?.id,
+      activeProvider: this.activeProvider?.name
+    })
+    
     if (!this.isReady()) {
       throw new Error('AI processor not ready')
     }
@@ -112,10 +119,16 @@ export class AIProcessor {
 
     // Generate AI summary
       if (opts.generateSummary) {
+        console.log('[AIProcessor] Generating summary...')
         enhanced.aiSummary = await this.activeProvider!.generateSummary(
           item.content,
           profile?.description
         )
+        console.log('[AIProcessor] Summary generated:', {
+          hasContent: !!enhanced.aiSummary,
+          summaryType: typeof enhanced.aiSummary,
+          summaryLength: enhanced.aiSummary?.summary?.length || 0
+        })
         enhanced.aiSummary.relevanceScore = enhanced.relevanceScore
       }
 
@@ -181,6 +194,13 @@ export class AIProcessor {
   ): Promise<BatchProcessingResult> {
     const startTime = Date.now()
     const opts = { ...this.config.processing, ...options }
+    
+    console.log('[AIProcessor] Starting batch processing:', {
+      itemCount: items.length,
+      profileId: profile?.id,
+      activeProvider: this.activeProvider?.name,
+      options: opts
+    })
     const processed: EnhancedFeedItem[] = []
     const failed: Array<{ item: FeedItem; error: string }> = []
 

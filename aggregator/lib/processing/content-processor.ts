@@ -16,10 +16,15 @@ export class ContentProcessor {
   }
 
   private async initializeAI() {
+    console.log('[ContentProcessor] Initializing AI processor...')
     try {
       this.aiProcessor = await AIProcessor.createDefault()
+      console.log('[ContentProcessor] AI processor initialized successfully:', {
+        isReady: this.aiProcessor.isReady(),
+        stats: this.aiProcessor.getStats()
+      })
     } catch (error) {
-      console.warn('Failed to initialize AI processor:', error)
+      console.error('[ContentProcessor] Failed to initialize AI processor:', error)
     }
   }
 
@@ -360,7 +365,14 @@ export class ContentProcessor {
    * Process a batch of items with AI enhancement
    */
   async processBatchWithAI(items: FeedItem[], profile: FocusProfile): Promise<EnhancedFeedItem[]> {
+    console.log('[ContentProcessor] Starting processBatchWithAI:', {
+      itemCount: items.length,
+      profileId: profile.id,
+      aiProcessorReady: this.aiProcessor?.isReady() || false
+    })
+    
     if (!this.aiProcessor || !this.aiProcessor.isReady()) {
+      console.log('[ContentProcessor] AI processor not ready, falling back to standard processing')
       // Fallback to standard processing
       return this.processBatch(items, profile).map(item => item as EnhancedFeedItem)
     }
@@ -374,6 +386,11 @@ export class ContentProcessor {
         processedItems.push(processed as EnhancedFeedItem)
       }
     }
+    
+    console.log('[ContentProcessor] Standard processing complete:', {
+      originalCount: items.length,
+      afterFilteringCount: processedItems.length
+    })
 
     if (processedItems.length === 0) {
       return []
@@ -381,10 +398,22 @@ export class ContentProcessor {
 
     try {
       // Apply AI enhancement in batch
+      console.log('[ContentProcessor] Calling AI processor...')
       const batchResult = await this.aiProcessor.processBatch(
         processedItems.map(item => item as FeedItem),
         profile
       )
+      
+      console.log('[ContentProcessor] AI batch result:', {
+        processedCount: batchResult.processed.length,
+        failedCount: batchResult.failed.length,
+        firstProcessedItem: batchResult.processed[0] ? {
+          id: batchResult.processed[0].id,
+          hasAISummary: !!batchResult.processed[0].aiSummary,
+          aiSummaryType: typeof batchResult.processed[0].aiSummary,
+          aiTagsCount: batchResult.processed[0].aiTags?.length || 0
+        } : null
+      })
 
       // Sort by AI-enhanced relevance scores
       batchResult.processed.sort((a, b) => {
@@ -396,7 +425,7 @@ export class ContentProcessor {
       return batchResult.processed
 
     } catch (error) {
-      console.warn('AI batch processing failed, using standard processing:', error)
+      console.error('[ContentProcessor] AI batch processing failed:', error)
       return processedItems
     }
   }
