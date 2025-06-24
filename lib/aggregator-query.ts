@@ -84,7 +84,7 @@ export async function fetchAggregatorData(
     
     data.processedFeedItems = data.processedFeedItems.map((item: any) => ({
       ...item,
-      id: item.url,
+      id: item.url, // Keep URL as ID for consistency
       isRead: readStatusData?.readStatus?.[item.url] || false,
       engagementData: engagementData?.topEngaged?.find((e: any) => e.itemId === item.url)
     }))
@@ -133,9 +133,11 @@ export function useAggregatorData(
       aiEnabled: options.aiEnabled ?? true,
     }),
     enabled: options.enabled !== false,
-    refetchInterval: options.refetchInterval ?? 30 * 60 * 1000, // 30 minutes
-    staleTime: 10 * 60 * 1000, // 10 minutes
-    gcTime: 60 * 60 * 1000, // 1 hour
+    refetchInterval: options.refetchInterval ?? 15 * 60 * 1000, // 15 minutes
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 30 * 60 * 1000, // 30 minutes
+    refetchOnWindowFocus: true,
+    refetchOnMount: true
   })
 }
 
@@ -165,12 +167,16 @@ export function useTrackEngagement() {
   return useMutation({
     mutationFn: ({ itemId, action, profileId }: { itemId: string; action: 'view' | 'click' | 'read' | 'unread'; profileId: string }) =>
       trackEngagement(itemId, action, profileId),
-    onSuccess: (_, variables) => {
-      // Invalidate engagement data
-      queryClient.invalidateQueries({ queryKey: aggregatorKeys.engagement() })
-      
-      // Update local cache to mark item as read/unread
+    onMutate: async (variables) => {
+      // Optimistically update for read/unread actions only
       if (variables.action === 'read' || variables.action === 'unread') {
+        // Cancel any outgoing refetches
+        await queryClient.cancelQueries({ queryKey: aggregatorKeys.profile(variables.profileId) })
+        
+        // Snapshot the previous value
+        const previousData = queryClient.getQueryData(aggregatorKeys.profile(variables.profileId))
+        
+        // Optimistically update the cache
         queryClient.setQueryData(
           aggregatorKeys.profile(variables.profileId),
           (oldData: AggregatorData | undefined) => {
@@ -179,14 +185,31 @@ export function useTrackEngagement() {
             return {
               ...oldData,
               processedFeedItems: oldData.processedFeedItems.map(item =>
-                item.id === variables.itemId
+                item.url === variables.itemId || item.id === variables.itemId
                   ? { ...item, isRead: variables.action === 'read' }
                   : item
               )
             }
           }
         )
+        
+        return { previousData }
       }
     },
+    onError: (error, variables, context) => {
+      // Revert optimistic update on error
+      if (context?.previousData && (variables.action === 'read' || variables.action === 'unread')) {
+        queryClient.setQueryData(aggregatorKeys.profile(variables.profileId), context.previousData)
+      }
+      console.error('Failed to track engagement:', error)
+    },
+    onSuccess: (_, variables) => {
+      // Invalidate engagement data
+      queryClient.invalidateQueries({ queryKey: aggregatorKeys.engagement() })
+    },
+    onSettled: (_, __, variables) => {
+      // Always refetch to ensure consistency
+      queryClient.invalidateQueries({ queryKey: aggregatorKeys.profile(variables.profileId) })
+    }
   })
 }

@@ -56,7 +56,7 @@ export function AIProcessButton({ profileId }: AIProcessButtonProps) {
         onClick={processBatch}
         disabled={processing}
         className={styles.button}
-        title="Process articles with AI to generate summaries and insights"
+        title="Process 5 articles with AI to generate summaries and insights (optimized for Vercel limits)"
       >
         {processing ? '⏳ Processing...' : '🤖 Process with AI'}
       </button>

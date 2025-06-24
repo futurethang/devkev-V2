@@ -16,11 +16,12 @@ export default function DigestPage() {
     data: digestData, 
     isLoading: loading, 
     error,
-    refetch 
+    refetch,
+    isFetching 
   } = useAggregatorData(selectedProfile, {
     includeItems: true,
     aiEnabled: true,
-    refetchInterval: 30 * 60 * 1000 // 30 minutes
+    refetchInterval: 15 * 60 * 1000 // 15 minutes
   })
 
   const trackEngagementMutation = useTrackEngagement()
@@ -189,6 +190,15 @@ export default function DigestPage() {
                 <option value="date">Date</option>
                 <option value="unread">Unread first</option>
               </select>
+              
+              <button
+                onClick={() => refetch()}
+                disabled={isFetching}
+                className={styles.refreshButton}
+                title="Refresh content"
+              >
+                {isFetching ? '↻ Refreshing...' : '↻ Refresh'}
+              </button>
             </div>
           </div>
         </div>

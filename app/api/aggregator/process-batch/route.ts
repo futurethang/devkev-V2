@@ -28,8 +28,8 @@ export async function GET(request: NextRequest) {
     const profileId = searchParams.get('profile')
     const batchSize = parseInt(searchParams.get('batchSize') || '5', 10)
     
-    // Keep batch size small to avoid timeouts
-    const safeBatchSize = Math.min(batchSize, 10)
+    // Keep batch size small to avoid timeouts (7 is the safe maximum based on testing)
+    const safeBatchSize = Math.min(batchSize, 7)
     
     const dbService = new DatabaseService()
     const startTime = Date.now()
