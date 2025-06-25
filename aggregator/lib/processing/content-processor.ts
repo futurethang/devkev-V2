@@ -138,22 +138,6 @@ export class ContentProcessor {
       processingStatus: 'processed' as const
     }
     
-    // Validate content quality before processing
-    const contentLength = (item.content || '').trim().length
-    const titleLength = (item.title || '').trim().length
-    
-    // Skip items with insufficient content for meaningful AI processing
-    if (contentLength < 100 && titleLength < 20) {
-      console.log(`[ContentProcessor] Skipping item ${item.id}: insufficient content (content: ${contentLength} chars, title: ${titleLength} chars)`)
-      // Still return the item but mark it as low-quality
-      processedItem.relevanceScore = 0.1
-      processedItem.metadata = {
-        ...processedItem.metadata,
-        contentQuality: 'insufficient'
-      }
-      return processedItem
-    }
-    
     // Calculate relevance score if enabled
     if (profile.processing.scoreRelevance) {
       const relevanceScore = this.calculateRelevanceScore(item, profile)
@@ -164,6 +148,20 @@ export class ContentProcessor {
       }
       
       processedItem.relevanceScore = relevanceScore
+    }
+    
+    // Validate content quality after relevance check
+    const contentLength = (item.content || '').trim().length
+    const titleLength = (item.title || '').trim().length
+    
+    // Mark items with insufficient content for meaningful AI processing
+    if (contentLength < 100 && titleLength < 20) {
+      console.log(`[ContentProcessor] Marking item ${item.id} as low-quality: insufficient content (content: ${contentLength} chars, title: ${titleLength} chars)`)
+      processedItem.relevanceScore = Math.min(processedItem.relevanceScore || 0, 0.1)
+      processedItem.metadata = {
+        ...processedItem.metadata,
+        contentQuality: 'insufficient'
+      }
     }
     
     // Enhance tags if enabled
