@@ -174,8 +174,8 @@ export async function GET(request: NextRequest) {
               publishedAt: item.publishedAt.toISOString(),
               tags: item.tags || [],
               relevanceScore: item.relevanceScore || 0,
-              aiSummary: (item as any).summary,
-              aiTags: (item as any).aiTags || [],
+              aiSummary: item.aiSummary,
+              aiTags: item.aiTags || [],
               isRead: false, // Will be updated by the client-side hook
               engagementData: (item as any).engagement
             })),
