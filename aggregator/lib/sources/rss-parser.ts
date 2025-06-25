@@ -134,7 +134,9 @@ export class RSSParser {
     const tags: string[] = []
     
     if (item.categories && Array.isArray(item.categories)) {
-      tags.push(...item.categories.map((cat: string) => cat.toLowerCase().trim()))
+      tags.push(...item.categories
+        .filter((cat: any) => cat && typeof cat === 'string')
+        .map((cat: string) => cat.toLowerCase().trim()))
     }
     
     return tags.filter(tag => tag.length > 0)
