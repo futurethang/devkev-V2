@@ -166,6 +166,9 @@ export class AIProcessor {
         confidence: enhanced.aiSummary?.confidence || 0.7
       }
 
+      // Mark as AI processed
+      enhanced.aiProcessed = true
+
       return enhanced
 
     } catch (error) {

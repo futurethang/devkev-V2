@@ -50,6 +50,9 @@ export interface FeedItem {
   /** Whether AI processing has been completed */
   aiProcessed?: boolean
   
+  /** Processing status for the item */
+  processingStatus?: 'pending' | 'processed' | 'failed'
+  
   /** Brief description (may be different from content) */
   description?: string
   

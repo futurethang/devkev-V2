@@ -133,7 +133,10 @@ export class ContentProcessor {
    * Process a single feed item according to profile configuration
    */
   processItem(item: FeedItem, profile: FocusProfile): FeedItem | null {
-    let processedItem = { ...item }
+    let processedItem = { 
+      ...item,
+      processingStatus: 'processed' as const
+    }
     
     // Calculate relevance score if enabled
     if (profile.processing.scoreRelevance) {
