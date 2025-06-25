@@ -98,13 +98,28 @@ export async function GET(request: NextRequest) {
             hasInsights: !!item.aiInsights
           })
           
-          // Extract summary text from AI summary object or use string directly
+          // Standardize summary storage - always store as JSON object
           let summaryData = null
           if (item.aiSummary) {
             if (typeof item.aiSummary === 'string') {
-              summaryData = item.aiSummary
+              // If it's already a JSON string, parse it first
+              try {
+                const parsed = JSON.parse(item.aiSummary)
+                summaryData = parsed
+              } catch {
+                // If it's not valid JSON, wrap it in a standard structure
+                summaryData = {
+                  summary: item.aiSummary,
+                  keyPoints: [],
+                  tags: [],
+                  insights: [],
+                  confidence: 0.5,
+                  processingTime: 0,
+                  relevanceScore: item.relevanceScore || 0
+                }
+              }
             } else if (typeof item.aiSummary === 'object') {
-              // Store the entire summary object as JSON
+              // Already an object, store as-is
               summaryData = item.aiSummary
             }
           }

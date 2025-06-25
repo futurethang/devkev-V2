@@ -157,31 +157,66 @@ export async function GET(request: NextRequest) {
             processedOnly: true
           })
           
+          // Apply deduplication to cached data
+          const contentProcessor = aggregator['contentProcessor']
+          const feedItemsForDedup = feedItems.map(item => ({
+            id: item.id,
+            title: item.title,
+            content: item.content || '',
+            url: item.url,
+            author: item.author,
+            publishedAt: item.publishedAt,
+            source: item.source as any,
+            sourceName: item.sourceName || '',
+            sourceUrl: item.sourceName || '',
+            tags: item.tags || [],
+            relevanceScore: item.relevanceScore || 0,
+            metadata: {}
+          }))
+          
+          const beforeDedup = feedItemsForDedup.length
+          const deduplicatedItems = contentProcessor.deduplicateItems(feedItemsForDedup)
+          const duplicatesRemoved = beforeDedup - deduplicatedItems.length
+          
           result = {
             profileId,
             profileName: profile.name,
-            totalItems: feedItems.length,
-            processedItems: feedItems.length,
-            processedFeedItems: feedItems.map(item => ({
-              id: item.id,
-              title: item.title,
-              description: item.content || '',
-              content: item.content || '',
-              url: item.url,
-              source: item.source,
-              sourceName: item.sourceName || '',
-              author: item.author,
-              publishedAt: item.publishedAt.toISOString(),
-              tags: item.tags || [],
-              relevanceScore: item.relevanceScore || 0,
-              aiSummary: item.aiSummary,
-              aiTags: item.aiTags || [],
-              isRead: false, // Will be updated by the client-side hook
-              engagementData: (item as any).engagement
-            })),
-            avgRelevanceScore: feedItems.reduce((sum, item) => sum + (item.relevanceScore || 0), 0) / feedItems.length || 0,
+            totalItems: deduplicatedItems.length,
+            processedItems: deduplicatedItems.length,
+            processedFeedItems: deduplicatedItems.map(item => {
+              const originalItem = feedItems.find(fi => fi.id === item.id)!
+              return {
+                id: item.id,
+                title: item.title,
+                description: item.content || '',
+                content: item.content || '',
+                url: item.url,
+                source: item.source,
+                sourceName: item.sourceName || '',
+                author: item.author,
+                publishedAt: item.publishedAt.toISOString(),
+                tags: item.tags || [],
+                relevanceScore: item.relevanceScore || 0,
+                aiSummary: (() => {
+                  // Ensure aiSummary is always parsed consistently
+                  if (!originalItem.aiSummary) return null
+                  if (typeof originalItem.aiSummary === 'string') {
+                    try {
+                      return JSON.parse(originalItem.aiSummary)
+                    } catch {
+                      return originalItem.aiSummary
+                    }
+                  }
+                  return originalItem.aiSummary
+                })(),
+                aiTags: originalItem.aiTags || [],
+                isRead: false, // Will be updated by the client-side hook
+                engagementData: (originalItem as any).engagement
+              }
+            }),
+            avgRelevanceScore: deduplicatedItems.reduce((sum, item) => sum + (item.relevanceScore || 0), 0) / deduplicatedItems.length || 0,
             successfulFetches: 1,
-            duplicatesRemoved: 0,
+            duplicatesRemoved,
             errors: [],
             fetchResults: []
           }
