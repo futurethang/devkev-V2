@@ -16,8 +16,7 @@ export default function DigestPage() {
     data: digestData, 
     isLoading: loading, 
     error,
-    refetch,
-    isFetching 
+    refetch
   } = useAggregatorData(selectedProfile, {
     includeItems: true,
     aiEnabled: true,
@@ -191,14 +190,6 @@ export default function DigestPage() {
                 <option value="unread">Unread first</option>
               </select>
               
-              <button
-                onClick={() => refetch()}
-                disabled={isFetching}
-                className={styles.refreshButton}
-                title="Refresh content"
-              >
-                {isFetching ? '↻ Refreshing...' : '↻ Refresh'}
-              </button>
             </div>
           </div>
         </div>
