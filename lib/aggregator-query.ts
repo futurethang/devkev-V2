@@ -136,8 +136,8 @@ export function useAggregatorData(
     refetchInterval: options.refetchInterval ?? 15 * 60 * 1000, // 15 minutes
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 30 * 60 * 1000, // 30 minutes
-    refetchOnWindowFocus: true,
-    refetchOnMount: true
+    refetchOnWindowFocus: false, // Disable to prevent interference with optimistic updates
+    refetchOnMount: 'always'
   })
 }
 
@@ -206,10 +206,13 @@ export function useTrackEngagement() {
     onSuccess: (_, variables) => {
       // Invalidate engagement data
       queryClient.invalidateQueries({ queryKey: aggregatorKeys.engagement() })
-    },
-    onSettled: (_, __, variables) => {
-      // Always refetch to ensure consistency
-      queryClient.invalidateQueries({ queryKey: aggregatorKeys.profile(variables.profileId) })
+      
+      // For read/unread actions, we don't need to refetch immediately since we've already
+      // optimistically updated the UI. The automatic refetch interval will sync eventually.
+      if (variables.action !== 'read' && variables.action !== 'unread') {
+        // For other actions (view, click), we can invalidate to get fresh data
+        queryClient.invalidateQueries({ queryKey: aggregatorKeys.profile(variables.profileId) })
+      }
     }
   })
 }

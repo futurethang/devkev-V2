@@ -1,49 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import fs from 'fs/promises'
-import path from 'path'
-
-// Simple file-based engagement tracking for now
-// In production, this would use a database
-const TRACKING_FILE = path.join(process.cwd(), 'aggregator', 'data', 'engagement.json')
-
-interface EngagementEvent {
-  itemId: string
-  action: 'view' | 'click' | 'read' | 'unread'
-  profileId: string
-  timestamp: string
-  sessionId?: string
-}
-
-interface EngagementData {
-  events: EngagementEvent[]
-  summary: {
-    [itemId: string]: {
-      views: number
-      clicks: number
-      reads: number
-      isRead: boolean
-      ctr: number // click-through rate
-      profile: string
-      lastEngagement: string
-    }
-  }
-}
-
-async function loadEngagementData(): Promise<EngagementData> {
-  try {
-    const data = await fs.readFile(TRACKING_FILE, 'utf-8')
-    return JSON.parse(data)
-  } catch (error) {
-    // Initialize if file doesn't exist
-    return { events: [], summary: {} }
-  }
-}
-
-async function saveEngagementData(data: EngagementData): Promise<void> {
-  const dir = path.dirname(TRACKING_FILE)
-  await fs.mkdir(dir, { recursive: true })
-  await fs.writeFile(TRACKING_FILE, JSON.stringify(data, null, 2))
-}
+import { supabase } from '../../../../lib/database/supabase'
 
 export async function POST(request: NextRequest) {
   try {
@@ -57,7 +13,16 @@ export async function POST(request: NextRequest) {
       )
     }
     
-    if (!['view', 'click', 'read', 'unread'].includes(action)) {
+    // Map actions to event types
+    const eventTypeMap: Record<string, string> = {
+      'view': 'view',
+      'click': 'click',
+      'read': 'read',
+      'unread': 'read' // We'll handle unread by deleting the read event
+    }
+    
+    const eventType = eventTypeMap[action]
+    if (!eventType) {
       return NextResponse.json(
         { error: 'Invalid action. Must be "view", "click", "read", or "unread"' },
         { status: 400 }
@@ -68,60 +33,54 @@ export async function POST(request: NextRequest) {
     const sessionId = request.cookies.get('digest-session')?.value || 
       `session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
     
-    const event: EngagementEvent = {
-      itemId,
-      action,
-      profileId,
-      timestamp: new Date().toISOString(),
-      sessionId
-    }
+    // Get user agent and IP from request headers
+    const userAgent = request.headers.get('user-agent')
+    const forwardedFor = request.headers.get('x-forwarded-for')
+    const ipAddress = forwardedFor?.split(',')[0].trim() || request.headers.get('x-real-ip')
     
-    // Load existing data
-    const data = await loadEngagementData()
-    
-    // Add event
-    data.events.push(event)
-    
-    // Update summary
-    if (!data.summary[itemId]) {
-      data.summary[itemId] = {
-        views: 0,
-        clicks: 0,
-        reads: 0,
-        isRead: false,
-        ctr: 0,
-        profile: profileId,
-        lastEngagement: event.timestamp
+    if (action === 'unread') {
+      // For unread action, delete the most recent read event
+      const { error } = await supabase
+        .from('user_engagement')
+        .delete()
+        .eq('item_id', itemId)
+        .eq('profile_id', profileId)
+        .eq('event_type', 'read')
+        .order('created_at', { ascending: false })
+        .limit(1)
+      
+      if (error) {
+        console.error('Failed to remove read status:', error)
+        return NextResponse.json(
+          { error: 'Failed to update read status' },
+          { status: 500 }
+        )
+      }
+    } else {
+      // For other actions, insert a new engagement event
+      const { error } = await supabase
+        .from('user_engagement')
+        .insert({
+          item_id: itemId,
+          profile_id: profileId,
+          event_type: eventType as any,
+          session_id: sessionId,
+          user_agent: userAgent,
+          ip_address: ipAddress,
+          metadata: {
+            source: 'digest',
+            timestamp: new Date().toISOString()
+          }
+        })
+      
+      if (error) {
+        console.error('Failed to track engagement:', error)
+        return NextResponse.json(
+          { error: 'Failed to track engagement' },
+          { status: 500 }
+        )
       }
     }
-    
-    if (action === 'view') {
-      data.summary[itemId].views++
-    } else if (action === 'click') {
-      data.summary[itemId].clicks++
-    } else if (action === 'read') {
-      data.summary[itemId].reads++
-      data.summary[itemId].isRead = true
-    } else if (action === 'unread') {
-      data.summary[itemId].isRead = false
-    }
-    
-    // Calculate CTR
-    if (data.summary[itemId].views > 0) {
-      data.summary[itemId].ctr = data.summary[itemId].clicks / data.summary[itemId].views
-    }
-    
-    data.summary[itemId].lastEngagement = event.timestamp
-    
-    // Keep only last 7 days of events to prevent file bloat
-    const sevenDaysAgo = new Date()
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
-    data.events = data.events.filter(e => 
-      new Date(e.timestamp) > sevenDaysAgo
-    )
-    
-    // Save data
-    await saveEngagementData(data)
     
     // Set session cookie if new
     const response = NextResponse.json({ success: true })
@@ -151,27 +110,42 @@ export async function GET(request: NextRequest) {
     const profileId = searchParams.get('profile')
     const limit = parseInt(searchParams.get('limit') || '50')
     
-    const data = await loadEngagementData()
+    // Query the materialized view for engagement summary
+    let query = supabase
+      .from('mv_engagement_summary')
+      .select('*')
+      .order('total_engagements', { ascending: false })
+      .limit(limit)
     
-    // Get top engaged items
-    const items = Object.entries(data.summary)
-      .filter(([_, summary]) => !profileId || summary.profile === profileId)
-      .sort((a, b) => {
-        // Sort by engagement score (views + clicks * 5)
-        const scoreA = a[1].views + (a[1].clicks * 5)
-        const scoreB = b[1].views + (b[1].clicks * 5)
-        return scoreB - scoreA
-      })
-      .slice(0, limit)
-      .map(([itemId, summary]) => ({
-        itemId,
-        ...summary,
-        engagementScore: summary.views + (summary.clicks * 5) + (summary.reads * 3)
-      }))
+    if (profileId) {
+      query = query.eq('profile_id', profileId)
+    }
+    
+    const { data, error } = await query
+    
+    if (error) {
+      console.error('Failed to get engagement data:', error)
+      return NextResponse.json(
+        { error: 'Failed to get engagement data' },
+        { status: 500 }
+      )
+    }
+    
+    // Transform data to match expected format
+    const topEngaged = data?.map(item => ({
+      itemId: item.item_id,
+      views: item.views,
+      clicks: item.clicks,
+      reads: item.reads,
+      isRead: item.is_read,
+      ctr: item.ctr,
+      lastEngagement: item.last_engagement,
+      engagementScore: item.views + (item.clicks * 5) + (item.reads * 3)
+    })) || []
     
     return NextResponse.json({
-      topEngaged: items,
-      totalEvents: data.events.length,
+      topEngaged,
+      totalEvents: topEngaged.length,
       profileId
     })
     
