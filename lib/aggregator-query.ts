@@ -84,9 +84,8 @@ export async function fetchAggregatorData(
     
     data.processedFeedItems = data.processedFeedItems.map((item: any) => ({
       ...item,
-      id: item.url, // Keep URL as ID for consistency
-      isRead: readStatusData?.readStatus?.[item.url] || false,
-      engagementData: engagementData?.topEngaged?.find((e: any) => e.itemId === item.url)
+      isRead: readStatusData?.readStatus?.[item.id] || false,
+      engagementData: engagementData?.topEngaged?.find((e: any) => e.itemId === item.id)
     }))
   }
 
