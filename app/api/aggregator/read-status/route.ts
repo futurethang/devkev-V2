@@ -70,7 +70,7 @@ export async function GET(request: NextRequest) {
       
       // Transform to object format
       const readStatus: { [itemId: string]: boolean } = {}
-      data?.forEach(item => {
+      data?.forEach((item: { item_id: string; is_read: boolean | null }) => {
         readStatus[item.item_id] = item.is_read || false
       })
       

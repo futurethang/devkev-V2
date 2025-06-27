@@ -242,7 +242,15 @@ export async function GET(request: NextRequest) {
       }
       
       // Transform data to match expected format
-      const topEngaged = data?.map(item => ({
+      const topEngaged = data?.map((item: {
+        item_id: string;
+        views: number;
+        clicks: number;
+        reads: number;
+        is_read: boolean | null;
+        ctr: number;
+        last_engagement: string | null;
+      }) => ({
         itemId: item.item_id,
         views: item.views,
         clicks: item.clicks,
