@@ -687,13 +687,40 @@ export class DatabaseService {
     insights?: any
     ai_processed?: boolean
     relevance_score?: number
+    aiSummary?: string
+    aiTags?: string[]
+    processingStatus?: string
+    aiProcessed?: boolean
   }): Promise<void> {
+    // Map high-level field names to database columns
+    const dbUpdates: any = {}
+    if (updates.summary !== undefined) dbUpdates.summary = updates.summary
+    if (updates.aiSummary !== undefined) dbUpdates.summary = updates.aiSummary
+    if (updates.ai_tags !== undefined) dbUpdates.ai_tags = updates.ai_tags
+    if (updates.aiTags !== undefined) dbUpdates.ai_tags = updates.aiTags
+    if (updates.insights !== undefined) dbUpdates.insights = updates.insights
+    if (updates.ai_processed !== undefined) dbUpdates.ai_processed = updates.ai_processed
+    if (updates.aiProcessed !== undefined) dbUpdates.ai_processed = updates.aiProcessed
+    if (updates.relevance_score !== undefined) dbUpdates.relevance_score = updates.relevance_score
+    if (updates.processingStatus !== undefined) dbUpdates.processing_status = updates.processingStatus
+    
     const { error } = await supabase
       .from('feed_items')
-      .update(updates)
+      .update(dbUpdates)
       .eq('id', id)
     
     if (error) throw new Error(`Failed to update feed item: ${error.message}`)
+  }
+  
+  async searchFeedItemsByUrl(url: string): Promise<FeedItem[]> {
+    const { data, error } = await supabase
+      .from('feed_items')
+      .select('*')
+      .eq('url', url)
+    
+    if (error) throw new Error(`Failed to search feed items by URL: ${error.message}`)
+    
+    return data?.map(this.mapFeedItemRowToItem) || []
   }
   
   async getUnprocessedCount(profileId?: string): Promise<number> {
