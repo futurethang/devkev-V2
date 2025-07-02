@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { DatabaseAggregator } from '../../../aggregator/lib/database-aggregator'
 
-// Initialize database aggregator with AI enabled
-const aggregator = new DatabaseAggregator(true)
+// Initialize database aggregator - disable AI in development unless explicitly enabled
+const aiEnabled = process.env.NODE_ENV === 'development' 
+  ? process.env.AGGREGATOR_AI_ENABLED === 'true'
+  : true
+const aggregator = new DatabaseAggregator(aiEnabled)
 
 // Initialize aggregator on first load
 let initialized = false

@@ -5,7 +5,11 @@ import { DatabaseService } from '../../../../lib/database/database-service'
 // Background sync API for scheduled processing
 // This ensures fresh data is always available for instant UI loading
 
-const aggregator = new DatabaseAggregator(true) // AI enabled
+// Disable AI in development unless explicitly enabled
+const aiEnabled = process.env.NODE_ENV === 'development' 
+  ? process.env.AGGREGATOR_AI_ENABLED === 'true'
+  : true
+const aggregator = new DatabaseAggregator(aiEnabled)
 const dbService = new DatabaseService()
 let initialized = false
 
@@ -59,6 +63,10 @@ export async function POST(request: NextRequest) {
       includeAI = true,
       operation = 'full_sync'
     } = body
+    
+    // Respect AI disable setting in development
+    const aiDisabledInDev = process.env.NODE_ENV === 'development' && process.env.DISABLE_AUTO_AI_PROCESSING === 'true'
+    const effectiveIncludeAI = includeAI && !aiDisabledInDev
 
     console.log(`Starting background sync: ${operation}, profile: ${profileId || 'all'}`)
     
@@ -90,7 +98,7 @@ export async function POST(request: NextRequest) {
           )
         }
         
-        if (includeAI) {
+        if (effectiveIncludeAI) {
           result = await aggregator.fetchFromProfileWithAI(profileForSync, true)
         } else {
           result = await aggregator.fetchFromProfile(profileForSync, true)
@@ -98,6 +106,17 @@ export async function POST(request: NextRequest) {
         break
         
       case 'ai_batch_process':
+        // Skip AI batch processing if disabled in development
+        if (aiDisabledInDev) {
+          return NextResponse.json({
+            success: true,
+            operation: 'ai_batch_process',
+            message: 'AI processing disabled in development mode',
+            timestamp: new Date().toISOString(),
+            duration: Date.now() - startTime
+          })
+        }
+        
         // Process unprocessed items with AI in small batches
         const batchSize = body.batchSize || 10 // Small batch to avoid timeout
         const dbServiceForBatch = new DatabaseService()

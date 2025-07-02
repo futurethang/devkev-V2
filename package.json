@@ -19,7 +19,8 @@
     "research:intervals": "tsx aggregator/research-intervals.ts",
     "test:e2e": "tsx aggregator/test-e2e.ts",
     "test:e2e:verbose": "tsx aggregator/test-e2e.ts --verbose",
-    "seed:sample": "tsx scripts/seed-sample-data.ts"
+    "seed:sample": "tsx scripts/seed-sample-data.ts",
+    "ai:process-batch": "node scripts/process-single-batch.js"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.54.0",

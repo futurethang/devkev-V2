@@ -92,10 +92,11 @@ export async function POST(req: NextRequest) {
     
     const savedItem = await db.createFeedItem(itemToSave as any)
 
-    // Process with AI if configured
+    // Process with AI if configured and not disabled in development
     const anthropicApiKey = process.env.ANTHROPIC_API_KEY
+    const aiDisabledInDev = process.env.NODE_ENV === 'development' && process.env.DISABLE_AUTO_AI_PROCESSING === 'true'
     
-    if (anthropicApiKey) {
+    if (anthropicApiKey && !aiDisabledInDev) {
       try {
         const aiProcessor = await AIProcessor.createDefault()
         const processedItems = await aiProcessor.processBatch([savedItem])
@@ -128,8 +129,12 @@ export async function POST(req: NextRequest) {
       aiProcessed: false
     })
 
+    const message = aiDisabledInDev 
+      ? 'Article submitted successfully (AI processing disabled in development)'
+      : 'Article submitted successfully (without AI processing)'
+    
     return NextResponse.json({
-      message: 'Article submitted successfully (without AI processing)',
+      message,
       item: savedItem
     })
 
