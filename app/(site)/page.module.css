@@ -19,10 +19,10 @@
 
 .subheadline {
   display: block;
-  font-size: clamp(var(--text-2xl), 3vw, var(--text-4xl));
+  font-size: clamp(var(--text-xl), 3vw, var(--text-2xl));
   font-weight: var(--font-normal);
   color: var(--color-primary);
-  margin-top: var(--space-2);
+  margin-bottom: var(--space-2);
 }
 
 .intro {
@@ -30,7 +30,9 @@
   line-height: var(--leading-relaxed);
   color: var(--color-text-secondary);
   max-width: 65ch;
-  margin: 0 auto;
+  margin: 0 auto 2rem auto;
+  text-align: left;
+
 }
 
 .stats {

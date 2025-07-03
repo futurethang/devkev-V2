@@ -43,6 +43,7 @@ p, h1, h2, h3, h4, h5, h6 {
   --color-text: #111827;
   --color-text-secondary: #6b7280;
   --color-text-tertiary: #9ca3af;
+  --color-text-muted: #9ca3af;
   --color-text-inverse: #ffffff;
   
   /* Brand Colors */
@@ -97,8 +98,8 @@ p, h1, h2, h3, h4, h5, h6 {
   --space-96: 24rem;
   
   /* Typography */
-  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  --font-mono: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+  --font-sans: var(--font-inter), -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
   
   /* Font Sizes */
   --text-xs: 0.75rem;
@@ -165,6 +166,9 @@ p, h1, h2, h3, h4, h5, h6 {
   --duration-700: 700ms;
   --duration-1000: 1000ms;
   
+  /* Transitions */
+  --transition-base: 150ms ease-in-out;
+  
   /* Z-index */
   --z-0: 0;
   --z-10: 10;
@@ -198,6 +202,7 @@ p, h1, h2, h3, h4, h5, h6 {
   --color-text: #f1f5f9;
   --color-text-secondary: #cbd5e1;
   --color-text-tertiary: #94a3b8;
+  --color-text-muted: #94a3b8;
   --color-text-inverse: #0f172a;
   
   /* Brand Colors */
@@ -226,6 +231,15 @@ body {
   background-color: var(--color-background);
   transition: background-color var(--duration-200) ease-in-out,
               color var(--duration-200) ease-in-out;
+}
+
+/* Code elements */
+code {
+  font-family: var(--font-mono);
+}
+
+pre {
+  font-family: var(--font-mono);
 }
 
 /* Focus styles for accessibility */
