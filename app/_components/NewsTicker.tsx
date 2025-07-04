@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef } from 'react'
 import styles from './NewsTicker.module.css'
-import Link from 'next/link'
 
 export interface NewsItem {
   id: string
@@ -25,7 +24,7 @@ export function NewsTicker({
 }: NewsTickerProps) {
   const [isPaused, setIsPaused] = useState(false)
   const tickerRef = useRef<HTMLDivElement>(null)
-  const animationRef = useRef<number>()
+  const animationRef = useRef<number | null>(null)
   const scrollPositionRef = useRef(0)
 
   useEffect(() => {
@@ -84,7 +83,7 @@ export function NewsTicker({
         <div ref={tickerRef} className={styles.tickerContent}>
           {duplicatedItems.map((item, index) => (
             <div key={`${item.id}-${index}`} className={styles.tickerItem}>
-              <Link 
+              <a 
                 href={item.url} 
                 target="_blank" 
                 rel="noopener noreferrer"
@@ -94,7 +93,7 @@ export function NewsTicker({
                 {item.sourceName && (
                   <span className={styles.tickerSource}>— {item.sourceName}</span>
                 )}
-              </Link>
+              </a>
               <span className={styles.tickerSeparator}>•</span>
             </div>
           ))}

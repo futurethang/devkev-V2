@@ -4,15 +4,16 @@ import '@/styles/globals.css'
 import 'highlight.js/styles/github-dark.css'
 import styles from './layout.module.css'
 import { QueryProvider } from '@/lib/providers/query-provider'
-
-// Configure Inter font
+import { FontProvider } from '@/lib/contexts/font-context'
+import { FontSelector } from '@/app/_components/FontSelector'
+import { FontDebugger } from '@/app/_components/FontDebugger'
+// Configure default fonts (still needed for fallbacks)
 const inter = Inter({
   subsets: ['latin'],
   variable: '--font-inter',
   display: 'swap',
 })
 
-// Configure JetBrains Mono font
 const jetbrainsMono = JetBrains_Mono({
   subsets: ['latin'],
   variable: '--font-jetbrains-mono',
@@ -59,8 +60,10 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
+  const allFontClasses = `${inter.variable} ${jetbrainsMono.variable}`
+  
   return (
-    <html lang="en" suppressHydrationWarning className={`${inter.variable} ${jetbrainsMono.variable}`}>
+    <html lang="en" suppressHydrationWarning className={allFontClasses}>
       <head>
         <script
           dangerouslySetInnerHTML={{
@@ -78,9 +81,13 @@ export default function RootLayout({
         <a href="#main-content" className={styles.skipToContent}>
           Skip to main content
         </a>
-        <QueryProvider>
-          {children}
-        </QueryProvider>
+        <FontProvider>
+          <QueryProvider>
+            {children}
+          </QueryProvider>
+          <FontSelector />
+          {/* <FontDebugger /> */}
+        </FontProvider>
       </body>
     </html>
   )

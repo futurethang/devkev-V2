@@ -45,7 +45,7 @@ export default function HomePage() {
       <section className={styles.hero} aria-label="Introduction">
         <h1 className={styles.headline}>
           <span className={styles.subheadline}>
-            Delivering quality in <code>[Design, Engineering, Product]</code>{" "}
+            Delivering quality in <pre>[Design, Engineering, Product]</pre>{" "}
             still requires
           </span>
           The Human Agent

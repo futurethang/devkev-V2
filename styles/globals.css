@@ -230,16 +230,28 @@ body {
   color: var(--color-text);
   background-color: var(--color-background);
   transition: background-color var(--duration-200) ease-in-out,
-              color var(--duration-200) ease-in-out;
+              color var(--duration-200) ease-in-out,
+              font-family var(--duration-200) ease-in-out;
+}
+
+/* Font testing system - dynamically applied classes will override these */
+.font-testing-sans {
+  font-family: inherit;
+}
+
+.font-testing-mono {
+  font-family: inherit;
 }
 
 /* Code elements */
 code {
   font-family: var(--font-mono);
+  transition: font-family var(--duration-200) ease-in-out;
 }
 
 pre {
   font-family: var(--font-mono);
+  transition: font-family var(--duration-200) ease-in-out;
 }
 
 /* Focus styles for accessibility */
